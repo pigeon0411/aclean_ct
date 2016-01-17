@@ -10,7 +10,7 @@
       <TargetName>rtthread-stm32</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
+      <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F103RC</Device>
@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\..\..\..\mdk_out\</OutputDirectory>
-          <OutputName>eb06</OutputName>
+          <OutputName>aclean</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -373,7 +373,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD, USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>.;..\..\components\CMSIS\Include;..\..\components\drivers\include;..\..\components\finsh;..\..\components\init;..\..\include;..\..\libcpu\arm\common;..\..\libcpu\arm\cortex-m3;Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;Libraries\STM32F10x_StdPeriph_Driver\inc;applications;drivers;.\applications\OLED</IncludePath>
+              <IncludePath>.;..\..\components\CMSIS\Include;..\..\components\drivers\include;..\..\components\finsh;..\..\components\init;..\..\include;..\..\libcpu\arm\common;..\..\libcpu\arm\cortex-m3;Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;Libraries\STM32F10x_StdPeriph_Driver\inc;applications;drivers;.\applications\OLED;.\applications\miotlink</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -485,6 +485,11 @@
               <FileName>protocol_send.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\applications\protocol_send.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi_mod_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\miotlink\wifi_mod_uart.c</FilePath>
             </File>
           </Files>
         </Group>

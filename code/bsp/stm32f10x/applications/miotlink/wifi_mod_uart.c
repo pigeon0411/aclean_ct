@@ -106,6 +106,123 @@ void send_F7_packet(void)
     wifi_send_packet_data(buf,16);
 }
 
+#ifndef DEVICE_WORK_TYPE_MACRO
+#define DEVICE_WORK_TYPE_MACRO
+
+typedef union __DEVICE_WORK_TYPE ={
+    struct __para_type
+    {
+    u8 device_power_state;
+    u8 device_mode;
+    u8 high_pressur_state;
+    u8 pht_work_state;
+    u8 timing_state;
+    u8 wind_speed_state;
+
+    u16 house1_pm2_5;
+    u16 house1_co2;
+    u16 house2_pm2_5;
+    u16 house2_co2;
+    u16 house3_pm2_5;
+    u16 house3_co2;
+    u16 house4_pm2_5;
+    u16 house4_co2;
+    u16 house5_pm2_5;
+    u16 house5_co2;
+    u8 fault_state;
+    } para_type;
+    u8 device_data[28];
+
+} DEVICE_WORK_TYPE;
+
+#endif
+
+
+DEVICE_WORK_TYPE device_work_data;
+
+void device_state_init(void)
+{
+    for(u8 i=0;i<sizeof(struct __para_type);i++)
+    {
+        device_work_data.device_data[i] = 0;
+    }
+
+}
+
+
+u8 return_current_device_state(void)
+{
+    u8 buftmp[30];
+
+    buftmp[0] = 0x01;
+    buftmp[1] = 0x1b;
+
+    u8 i;
+
+    for(i=0;i<sizeof(struct __para_type);i++)
+        {
+        buftmp[2+i] = device_work_data.device_data[i];
+
+    }
+
+    wifi_send_packet_data(buftmp,i+2);
+
+    return 0;
+}
+
+u8 set_device_work_mode(u8 type,u8 data)
+{
+    switch(type)
+        {
+    case 0x02:
+        if(data)
+            device_work_data.para_type.device_power_state = 1;
+        else
+            device_work_data.para_type.device_power_state = 0;
+
+        
+        break;
+    case 0x03:
+        if(data==1||data==2)
+            device_work_data.para_type.device_mode = data;
+         
+        break;
+    case 0x04:
+        if(data)
+            device_work_data.para_type.high_pressur_state = 1;
+        else
+            device_work_data.para_type.high_pressur_state = 0;
+
+        
+        break;
+    case 0x05:
+        if(data)
+            device_work_data.para_type.pht_work_state = 1;
+        else
+            device_work_data.para_type.pht_work_state = 0;
+
+        
+        break;
+    case 0x06:
+        if(data<=0x0c)
+            device_work_data.para_type.timing_state = 1;
+        else
+            device_work_data.para_type.timing_state = 0;
+
+        
+        break;
+    case 0x07:
+        if(data<=3)
+            device_work_data.para_type.wind_speed_state = 1;
+        
+        break;
+
+    default:break;
+
+    }
+
+}
+
 u8 wifi_receive_data_decode(u8* buf,u8 len)
 {
     u8 i;
@@ -114,25 +231,21 @@ u8 wifi_receive_data_decode(u8* buf,u8 len)
     switch(buf[0])
     {
     case 0x01:
-
+         return_current_device_state();   
         break;
     case 0x02:
 
-        break;
     case 0x03:
 
-        break;
     case 0x04:
 
-        break;
     case 0x05:
 
-        break;
     case 0x06:
 
-        break;
     case 0x07:
-
+        set_device_work_mode(buf[0],buf[2]);
+        return_current_device_state();  
         break;
     case 0xf7:
         send_F7_packet();
@@ -341,5 +454,10 @@ int wifi_uart_init(void)
 }
 
 
+void wifi_comm_init(void)
+{
+    device_state_init();
+    wifi_uart_init();
 
+}
 

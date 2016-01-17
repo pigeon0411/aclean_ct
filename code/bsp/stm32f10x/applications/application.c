@@ -261,7 +261,8 @@ void rt_main_thread_entry(void* parameter)
 	
 	rt_adc_ctl_init();
 
-    //OLED_Init();
+
+    wifi_comm_init();
 
 	//osd_test();
 }
