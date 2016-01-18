@@ -251,15 +251,19 @@ extern void OLED_Init(void);
 extern void osd_test(void);
 extern void osd_init(void);
 
+
+
+
+
 void rt_main_thread_entry(void* parameter)
 {
 
-	rs485_system_init();
-	osd_init();
+	//rs485_system_init();
+	//osd_init();
 	rt_thread_delay(600);
-	rt_key_ctl_init();
+	//rt_key_ctl_init();
 	
-	rt_adc_ctl_init();
+	//rt_adc_ctl_init();
 
 
     wifi_comm_init();

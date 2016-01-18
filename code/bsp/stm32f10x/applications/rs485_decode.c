@@ -259,6 +259,66 @@ void rs485_data_init(void)
 
 rt_mutex_t rs485_send_mut = RT_NULL;
 
+
+void rt_protocol_analyse_thread_entry(void* parameter)
+{
+    char k;
+
+	while (1)
+    {
+        /* wait receive */
+        if (rt_sem_take(uart1_sem, RT_WAITING_FOREVER) == RT_EOK) 
+		{
+			if(command_analysis())
+			{
+
+				//ptz_execute();
+			    switch(command_byte)
+				{
+				case 0x0E://open iris
+					
+				    break;
+
+				case 0x10://set preset point
+				k = prePoint_num_Function(Rocket_fir_data); //return 0 or 1~128 preset point
+				if (k)
+				{
+
+				}
+				else           //function preset point
+					dome_func_control(command_byte,Rocket_fir_data);
+				break;
+
+				case 0x11://call preset point
+				k = prePoint_num_Function(Rocket_fir_data); //return 0 or 1~128 preset point
+				if (k)
+				{
+
+				}               
+				else           //function preset point
+					dome_func_control(command_byte,Rocket_fir_data);
+				break;
+				case 0x90:
+
+					break;
+				default:
+					break;
+				}
+
+				
+			}
+
+			rt_thread_delay(40);
+		}
+
+	   
+    }	
+	
+}
+
+
+
+
 rt_err_t rs485_send_data(u8* data,u16 len)
 {
 	rt_mutex_take(rs485_send_mut,RT_WAITING_FOREVER);
@@ -310,6 +370,14 @@ int rs485_system_init(void)
                                    4092, 8, 21);
 	  if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
+
+
+	  init_thread = rt_thread_create("decode485",rt_protocol_analyse_thread_entry, RT_NULL,
+								 1024, 8, 21);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+
+	
 
     return 0;
 }

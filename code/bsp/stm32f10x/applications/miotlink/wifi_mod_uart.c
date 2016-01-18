@@ -2,21 +2,69 @@
 #include <rtthread.h>
 
 
+
+#ifndef DEVICE_WORK_TYPE_MACRO
+#define DEVICE_WORK_TYPE_MACRO
+
+typedef union __DEVICE_WORK_TYPE {
+    struct __para_type
+    {
+    u8 device_power_state;
+    u8 device_mode;
+    u8 high_pressur_state;
+    u8 pht_work_state;
+    u8 timing_state;
+    u8 wind_speed_state;
+
+    u16 house1_pm2_5;
+    u16 house1_co2;
+    u16 house2_pm2_5;
+    u16 house2_co2;
+    u16 house3_pm2_5;
+    u16 house3_co2;
+    u16 house4_pm2_5;
+    u16 house4_co2;
+    u16 house5_pm2_5;
+    u16 house5_co2;
+    u8 fault_state;
+    } para_type;
+    u8 device_data[28];
+
+} DEVICE_WORK_TYPE;
+
+
+struct _uart_dev_my
+{
+	struct rt_semaphore rx_sem;
+
+	rt_device_t device;
+};
+
+
+
+#endif
+
+
+void uart_wifi_set_device(void);
+
+
+
 u8 wifi_send_packet_buf_pub[100];
 u8 wifi_recv_packet_buf_pub[100];
 u8 wifi_data_buffer_recv_tmp[100];  
 u8 wifi_recieve_data_length = 0;
 
+struct _uart_dev_my* wifi_uart_dev_my;
 
 // return 0,fail; 1,success
 //buf,接收到的数据缓冲，len缓冲中所有数据的长度
 u8 wifi_receive_data_check(u8* buf,u8 len)
 {
     u8 i;
-    u8 chk;
+    u8 chk=0;
 
-    u8 chk_src = buf[len-1];
-    u8 end_code = buf[len];
+    u8 chk_src = buf[len-2];
+    u8 end_code = buf[len-1];
     
     if(buf[0]==0xF1 && buf[1] == 0xF1 && end_code == 0x7E)
     {
@@ -39,6 +87,24 @@ u8 wifi_receive_data_check(u8* buf,u8 len)
 
 }
 
+rt_err_t wifi_send_data(u8* data,u16 len)
+{
+	//rt_mutex_take(rs485_send_mut,RT_WAITING_FOREVER);
+	
+	//RS485_TX_ENABLE;
+	if(wifi_uart_dev_my->device == RT_NULL)	
+	{
+		uart_wifi_set_device();
+	}
+	
+	rt_device_write(wifi_uart_dev_my->device, 0, data, len);
+
+	rt_thread_delay (80);
+	//RS485_RX_ENABLE;
+
+	//rt_mutex_release(rs485_send_mut);
+	return RT_EOK;
+}
 
 
 //对待发送的数据进行封包，并发送
@@ -62,7 +128,8 @@ u8 wifi_send_packet_data(u8* buf,u8 len)
     wifi_send_packet_buf_pub[i+2] = chk;
     wifi_send_packet_buf_pub[i+3] = 0x7E;
 
-    
+    wifi_send_data(wifi_send_packet_buf_pub,len+4);
+	
 }
 
 
@@ -106,36 +173,7 @@ void send_F7_packet(void)
     wifi_send_packet_data(buf,16);
 }
 
-#ifndef DEVICE_WORK_TYPE_MACRO
-#define DEVICE_WORK_TYPE_MACRO
 
-typedef union __DEVICE_WORK_TYPE ={
-    struct __para_type
-    {
-    u8 device_power_state;
-    u8 device_mode;
-    u8 high_pressur_state;
-    u8 pht_work_state;
-    u8 timing_state;
-    u8 wind_speed_state;
-
-    u16 house1_pm2_5;
-    u16 house1_co2;
-    u16 house2_pm2_5;
-    u16 house2_co2;
-    u16 house3_pm2_5;
-    u16 house3_co2;
-    u16 house4_pm2_5;
-    u16 house4_co2;
-    u16 house5_pm2_5;
-    u16 house5_co2;
-    u8 fault_state;
-    } para_type;
-    u8 device_data[28];
-
-} DEVICE_WORK_TYPE;
-
-#endif
 
 
 DEVICE_WORK_TYPE device_work_data;
@@ -264,14 +302,7 @@ u8 wifi_receive_data_decode(u8* buf,u8 len)
 rt_sem_t	wifi_uart_sem;
 
 
-struct _uart_dev_my
-{
-	struct rt_semaphore rx_sem;
 
-	rt_device_t device;
-};
-
-struct _uart_dev_my* wifi_uart_dev_my;
 static rt_err_t wifi_rx_ind(rt_device_t dev, rt_size_t size)
 {
     RT_ASSERT(wifi_uart_dev_my != RT_NULL);
@@ -345,14 +376,19 @@ void wifi_rx_isr(u8 udr0)
             return;
         }
     }
-    else if(recieved_len == 4)
+    else if(recieved_len <= 3)
     {
         wifi_data_buffer_recv_tmp[recieved_len] = udr0;
-        wait_len = udr0;
-        wait_len_cnt = 0;
         recieved_len++;
+			
+		if(recieved_len == 4)
+			{
+		wait_len = udr0;
+        wait_len_cnt = 0;
+			}
     }
-
+	else
+		{
     if(wait_len_cnt <= wait_len)
     {
         wait_len_cnt++;
@@ -361,6 +397,8 @@ void wifi_rx_isr(u8 udr0)
     }
     else if(wait_len_cnt == wait_len+1)
     {
+	     wifi_data_buffer_recv_tmp[recieved_len] = udr0;
+	 
         recieved_len++;
         wifi_recieve_data_length = recieved_len;
 
@@ -375,7 +413,7 @@ void wifi_rx_isr(u8 udr0)
        rt_sem_release(wifi_uart_sem);
  
     }
-
+		}
 }
 
 void rt_wifi_thread_entry(void* parameter)
@@ -445,7 +483,7 @@ int wifi_uart_init(void)
 	  if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 
-    init_thread = rt_thread_create("wifidecode",rt_wifi_thread_entry, RT_NULL,
+    init_thread = rt_thread_create("wifidecode",rt_wifi_decode_thread_entry, RT_NULL,
                                    1024, 8, 21);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);

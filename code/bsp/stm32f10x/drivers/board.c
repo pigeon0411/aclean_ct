@@ -287,6 +287,31 @@ void ports_initial(void)
 
 
 
+void air_clean_gpio_init(void)
+{
+  	GPIO_InitTypeDef GPIOA_InitStructure;
+	
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+	/* configure the rs485 control pin of the receive or send */
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15;
+	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIOA_InitStructure);
+
+
+	GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+	GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+	
+	GPIO_SetBits(GPIOB,GPIO_Pin_14);
+	GPIO_SetBits(GPIOB,GPIO_Pin_15);
+
+	
+
+}
+
+
+
 //////////////////////////////////////////////////////////////////
 #if 1//CAMERA_HITACHI_SC110
 

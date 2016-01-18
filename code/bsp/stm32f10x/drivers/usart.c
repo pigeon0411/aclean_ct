@@ -294,8 +294,8 @@ static void RCC_Configuration(void)
 #endif /* RT_USING_UART3 */
 }
 
-#define	RS485_RX_TX_CTL_PIN		GPIO_Pin_9
-#define	RS485_RX_TX_CTL_PORT	GPIOB	//rs485发送，接收使能引脚控制为PE0
+#define	RS485_RX_TX_CTL_PIN		GPIO_Pin_1
+#define	RS485_RX_TX_CTL_PORT	GPIOA	//rs485发送，接收使能引脚控制为PE0
 
 static void GPIO_Configuration(void)
 {
@@ -321,11 +321,18 @@ static void GPIO_Configuration(void)
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  	GPIO_InitStructure.GPIO_Pin = RS485_RX_TX_CTL_PIN;
+  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  	GPIO_Init(RS485_RX_TX_CTL_PORT, &GPIO_InitStructure);
+
 	/*设置RS485为接收模式*/
-	//GPIO_ResetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+	GPIO_ResetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+
 
 	/*设置RS485为发送模式*/
- 	GPIO_SetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+ 	//GPIO_SetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
 
 
 #endif /* RT_USING_UART1 */
