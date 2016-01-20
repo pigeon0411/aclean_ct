@@ -1,0 +1,46 @@
+
+
+#ifndef DEVICE_WORK_TYPE_MACRO
+#define DEVICE_WORK_TYPE_MACRO
+
+typedef union __DEVICE_WORK_TYPE {
+    struct __para_type
+    {
+    u8 device_power_state;
+    u8 device_mode;
+    u8 high_pressur_state;
+    u8 pht_work_state;
+    u8 timing_state;
+    u8 wind_speed_state;
+
+    u16 house1_pm2_5;
+    u16 house1_co2;
+    u16 house2_pm2_5;
+    u16 house2_co2;
+    u16 house3_pm2_5;
+    u16 house3_co2;
+    u16 house4_pm2_5;
+    u16 house4_co2;
+    u16 house5_pm2_5;
+    u16 house5_co2;
+    u8 fault_state;
+    } para_type;
+    u8 device_data[28];
+
+} DEVICE_WORK_TYPE;
+
+
+struct _uart_dev_my
+{
+	struct rt_semaphore rx_sem;
+
+	rt_device_t device;
+};
+
+
+
+#endif
+
+
+extern 	void wifi_factory_set(void);
+

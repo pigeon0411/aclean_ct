@@ -21,7 +21,6 @@
 *.sh text
 *.txt text
 *.xml text
-SConscript text
 Makefile text
 AUTHORS text
 COPYING text
@@ -39,4 +38,3 @@ COPYING text
 *.ini -text
 *.sct -text
 *.xsd -text
-Jamfile -text
