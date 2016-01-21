@@ -44,27 +44,21 @@ void thread_entry_SysMonitor(void* parameter)
 	uint16_t errorCount = 0;
 	while (1)
 	{
-		cpu_usage_get(&CpuUsageMajor, &CpuUsageMinor);
-
 
 		rt_thread_delay(RT_TICK_PER_SECOND);
 
-		//Test Modbus Master
-		usModbusUserData[0] = (USHORT)(rt_tick_get()/10);
-		usModbusUserData[1] = (USHORT)(rt_tick_get()%10);
-		ucModbusUserData[0] = 0x1F;
 //		errorCode = eMBMasterReqReadDiscreteInputs(1,3,8,RT_WAITING_FOREVER);
 //		errorCode = eMBMasterReqWriteMultipleCoils(1,3,5,ucModbusUserData,RT_WAITING_FOREVER);
 		//errorCode = eMBMasterReqWriteCoil(1,8,0xFF00,RT_WAITING_FOREVER);
 //		errorCode = eMBMasterReqReadCoils(1,3,8,RT_WAITING_FOREVER);
 		//errorCode = eMBMasterReqReadInputRegister(1,1,2,RT_WAITING_FOREVER);
 
-		//errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+		errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
 		if(errorCode == MB_MRE_NO_ERR)
 			{
-				device_work_data.para_type.house1_co2 = usMRegHoldBuf[0][0];
-				device_work_data.para_type.house1_pm2_5 = usMRegHoldBuf[0][1];
+//				device_work_data.para_type.house1_co2 = usMRegHoldBuf[0][0];
+//				device_work_data.para_type.house1_pm2_5 = usMRegHoldBuf[0][1];
 
 		}
 
@@ -92,11 +86,12 @@ void thread_entry_SysMonitor(void* parameter)
 //******************************************************************
 void thread_entry_ModbusMasterPoll(void* parameter)
 {
-	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
+	eMBMasterInit(MB_RTU, 4, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
 	while (1)
 	{
 		eMBMasterPoll();
+		rt_thread_delay(DELAY_MS(30));
 	}
 }
 

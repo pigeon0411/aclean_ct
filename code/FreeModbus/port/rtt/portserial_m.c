@@ -75,7 +75,11 @@ BOOL xMBMasterPortSerialInit(UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits,
         extern struct rt_serial_device serial3;
         serial = &serial3;
 #endif
-    }
+		} else if (ucPORT == 4) {
+			extern struct rt_serial_device serial4;
+			serial = &serial4;
+		}
+
     /* set serial configure parameter */
     serial->config.baud_rate = ulBaudRate;
     serial->config.stop_bits = STOP_BITS_1;

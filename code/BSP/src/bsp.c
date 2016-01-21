@@ -24,6 +24,9 @@
 #include <rthw.h>
 #include <rtthread.h>
 #include "usart.h"
+#include "gpio.h"
+
+
 /*
 *********************************************************************************************************
 *                                            LOCAL TABLES
@@ -85,7 +88,7 @@ static void RCC_Configuration(void)
 *******************************************************************************/
 static void NVIC_Configuration(void)
 {
-    NVIC_InitTypeDef NVIC_InitStructure;
+//    NVIC_InitTypeDef NVIC_InitStructure;
 
 #ifdef  VECT_TAB_RAM
     // Set the Vector Table base location at 0x20000000
@@ -125,14 +128,14 @@ static void GPIO_Configuration(void)
 //备    注：分频因子=4*2^prer.但最大值只能是256!时间计算(大概):Tout=40K/((4*2^prer)*rlr)值	 2S超时
 //Editor：liuqh 2013-1-16  Company: BXXJS
 //*******************************************************************
-static void IWDG_Configuration(void) 
-{
-	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);//使能对IWDG->PR和IWDG->RLR的写
-	IWDG_SetPrescaler(IWDG_Prescaler_64);//64分频
-	IWDG_SetReload(1300);
-	IWDG_ReloadCounter();
-	IWDG_Enable();		
-}
+//static void IWDG_Configuration(void) 
+//{
+//	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);//使能对IWDG->PR和IWDG->RLR的写
+//	IWDG_SetPrescaler(IWDG_Prescaler_64);//64分频
+//	IWDG_SetReload(1300);
+//	IWDG_ReloadCounter();
+//	IWDG_Enable();		
+//}
 //*******************喂独立看门狗*************************************
 //函数定义: void IWDG_Feed(void)
 //描    述：初始化独立看门狗

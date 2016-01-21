@@ -60,14 +60,14 @@ void stm32_pin_write(rt_device_t dev, rt_base_t pin, rt_base_t value)
         return;
     }
 
-    if (value == PIN_LOW)
-    {
-        GPIO_ResetBits(index->gpio, index->pin);
-    }
-    else
-    {
-        GPIO_SetBits(index->gpio, index->pin);
-    }
+//    if (value == PIN_LOW)
+//    {
+//        GPIO_ResetBits(index->gpio, index->pin);
+//    }
+//    else
+//    {
+//        GPIO_SetBits(index->gpio, index->pin);
+//    }
 }
 
 int stm32_pin_read(rt_device_t dev, rt_base_t pin)

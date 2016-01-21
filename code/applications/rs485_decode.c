@@ -197,7 +197,7 @@ void pelco_rx_isr(u8 udr0)
 u8 rrcnt = 0;
 void pelco_rx_isr(u8 udr0)
 {
-    u8 i;
+//    u8 i;
     static uchar keyboard_data_buffer1[50];  
 
 	if(rrcnt > 40)
@@ -243,7 +243,7 @@ rt_mutex_t rs485_send_mut = RT_NULL;
 
 void rt_protocol_analyse_thread_entry(void* parameter)
 {
-    char k;
+//    char k;
 
 	while (1)
     {
@@ -287,7 +287,7 @@ rt_err_t rs485_send_data(u8* data,u16 len)
 
 int rs485_system_init(void)
 {
-    rt_err_t result;
+//    rt_err_t result;
     rt_thread_t init_thread;
 
 	rs485_send_mut = rt_mutex_create("rs485mut",RT_IPC_FLAG_FIFO);

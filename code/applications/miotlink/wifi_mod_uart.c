@@ -1,8 +1,6 @@
 //#include <board.h>
 #include "app_task.h"
-
-
-
+#include<string.h>
 
 
 
@@ -91,6 +89,7 @@ u8 wifi_send_packet_data(u8* buf,u8 len)
 
     wifi_send_data(wifi_send_packet_buf_pub,len+4);
 	
+		return 1;
 }
 
 
@@ -219,13 +218,13 @@ u8 set_device_work_mode(u8 type,u8 data)
     default:break;
 
     }
-
+	return 1;
 }
 
 u8 wifi_receive_data_decode(u8* buf,u8 len)
 {
-    u8 i;
-    u8 chk;
+//    u8 i;
+//    u8 chk;
     
     switch(buf[0])
     {
@@ -398,7 +397,7 @@ void rt_wifi_thread_entry(void* parameter)
 
 void rt_wifi_decode_thread_entry(void* parameter)
 {
-	u16 k;
+//	u16 k;
 
 	while(1)
 	{
@@ -417,7 +416,7 @@ void rt_wifi_decode_thread_entry(void* parameter)
 
 void rt_wifi_key_thread_entry(void* parameter)
 {
-	u16 k;
+//	u16 k;
 
 	while(1)
 	{
@@ -442,7 +441,7 @@ rt_thread_t wifi_thread_id;
 
 int wifi_uart_init(void)
 {
-    rt_err_t result;
+//    rt_err_t result;
     rt_thread_t init_thread;
 
 		
@@ -452,7 +451,7 @@ int wifi_uart_init(void)
         rt_kprintf("no memory for shell\n");
         return -1;
     }
-    memset(wifi_uart_dev_my, 0, sizeof(struct _uart_dev_my));
+//    memset(wifi_uart_dev_my, 0, sizeof(struct _uart_dev_my));
     rt_sem_init(&(wifi_uart_dev_my->rx_sem), "wifirx", 0, 0);
 	wifi_uart_dev_my->device = RT_NULL;
 	uart_wifi_set_device();
@@ -505,7 +504,7 @@ void wifi_factory_set(void)
 		wifi_send_data((u8*)wifi_enter_at_mode,strlen((u8*)wifi_enter_at_mode));
 
 		while(1)
-			{
+		{
 			if (rt_sem_take(&wifi_uart_dev_my->rx_sem,  DELAY_S(10)) != RT_EOK) continue;
 			
             /* read one character from device */
@@ -527,7 +526,7 @@ void wifi_factory_set(void)
 
 				len = 0;
 			}
-			}
+		}
 		
 		rt_thread_delay(DELAY_S(1));
 		wifi_send_data((u8*)wifi_set_factory,strlen((u8*)wifi_set_factory));

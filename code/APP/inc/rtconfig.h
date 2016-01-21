@@ -67,9 +67,24 @@
 /* Using GPIO pin framework */
 #define RT_USING_PIN
 
+// <bool name="RT_USING_COMPONENTS_INIT" description="Using RT-Thread components initialization" default="true" />
+#define RT_USING_COMPONENTS_INIT
+
+/* SECTION: Device System */
+/* Using Device System */
+#define RT_USING_DEVICE
+// <bool name="RT_USING_DEVICE_IPC" description="Using device communication" default="true" />
+#define RT_USING_DEVICE_IPC
+// <bool name="RT_USING_SERIAL" description="Using Serial" default="true" />
+#define RT_USING_SERIAL
+
 /* SECTION: Console options */
+//#define RT_USING_CONSOLE
 /* the buffer size of console*/
-#define RT_CONSOLEBUF_SIZE	128
+#define RT_CONSOLEBUF_SIZE	        128
+// <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart1" />
+#define RT_CONSOLE_DEVICE_NAME	    "uart4"
+
 
 /* SECTION: finsh, a C-Express shell */
 //#define RT_USING_FINSH
