@@ -163,7 +163,7 @@ void thread_entry_SysMonitor(void* parameter)
 //******************************************************************
 void thread_entry_ModbusMasterPoll(void* parameter)
 {
-	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_EVEN);
+	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
 	while (1)
 	{

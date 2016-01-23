@@ -303,7 +303,7 @@ void rt_hw_board_init(void)
     /* Configure the SysTick */
     SysTick_Config( SystemCoreClock / RT_TICK_PER_SECOND );
 
-	SysTick_Configuration();
+	//SysTick_Configuration();
 
 #if STM32_EXT_SRAM
     EXT_SRAM_Configuration();

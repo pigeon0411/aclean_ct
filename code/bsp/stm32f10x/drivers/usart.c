@@ -124,9 +124,10 @@ static int stm32_putc(struct rt_serial_device *serial, char c)
     RT_ASSERT(serial != RT_NULL);
     uart = (struct stm32_uart *)serial->parent.user_data;
 
+    USART_GetITStatus(uart->uart_device, USART_IT_TC);//先读取一次 TC，否则会出现第一个字节发送不出去的问题 
     uart->uart_device->DR = c;
-    //while (!(uart->uart_device->SR & USART_FLAG_TC));
-	while (!(uart->uart_device->SR & USART_FLAG_TXE));
+    while (!(uart->uart_device->SR & USART_FLAG_TC));
+	//while (!(uart->uart_device->SR & USART_FLAG_TXE)); //如果用这行代码，会出现最后一个字节发不出去的问题
 
 	//RS485_RX_ENABLE;
     return 1;
