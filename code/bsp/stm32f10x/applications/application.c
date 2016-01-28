@@ -109,6 +109,12 @@ extern USHORT   usMRegHoldBuf[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
 
 extern DEVICE_WORK_TYPE device_work_data;
 
+#define sw16(x) \
+   ((short)(\
+      (((short)(x) &(short)0x00ffU) << 8) |\
+      (((short)(x) &(short)0xff00U) >> 8)))
+
+
 //***************************系统监控线程***************************
 //函数定义: void thread_entry_SysRunLed(void* parameter)
 //入口参数：无
@@ -133,9 +139,9 @@ void thread_entry_SysMonitor(void* parameter)
 		errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
 		if(errorCode == MB_MRE_NO_ERR)
-			{
-				device_work_data.para_type.house1_co2 = usMRegHoldBuf[0][0];
-				device_work_data.para_type.house1_pm2_5 = usMRegHoldBuf[0][1];
+		{
+				device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+				device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
 
 		}
 

@@ -12,10 +12,11 @@ typedef union __DEVICE_WORK_TYPE {
     {
     u8 device_power_state;
     u8 device_mode;
+    u8 wind_speed_state;
+	
     u8 high_pressur_state;
     u8 pht_work_state;
     u8 timing_state;
-    u8 wind_speed_state;
 
     u16 house1_pm2_5;
     u16 house1_co2;
@@ -29,7 +30,7 @@ typedef union __DEVICE_WORK_TYPE {
     u16 house5_co2;
     u8 fault_state;
     } para_type;
-    u8 device_data[28];
+    u8 device_data[27];
 
 } DEVICE_WORK_TYPE;
 

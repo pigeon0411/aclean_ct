@@ -163,7 +163,7 @@ u8 return_current_device_state(void)
 
     u8 i;
 
-    for(i=0;i<sizeof(struct __para_type);i++)
+    for(i=0;i<27;i++)
         {
         buftmp[2+i] = device_work_data.device_data[i];
 
@@ -567,11 +567,11 @@ void wifi_comm_init(void)
 }
 
 
-const u8* wifi_enter_at_mode="+++AtCmd\\r\\n";
-const u8* wifi_enter_at_mode_return="AT+CMD=OK\\r\\n";
+const u8* wifi_enter_at_mode="+++AtCmd\r\n";
+const u8* wifi_enter_at_mode_return="AT+CMD=OK\r\n";
 
-const u8* wifi_set_factory="AT+Default=1\\r\\n";
-const u8* wifi_set_factory_return="AT+Default=OK\\r\\n";
+const u8* wifi_set_factory="AT+Default=1\r\n";
+const u8* wifi_set_factory_return="AT+Default=OK\r\n";
 
 void wifi_factory_set(void)
 {
@@ -579,6 +579,9 @@ void wifi_factory_set(void)
 	u8 len=0;
 	u8 ch;
 	u8 cnt = 0;
+
+		u8 ttllen;
+		
 
 		if(wifi_thread_id != RT_NULL)
 		if(rt_thread_delete(wifi_thread_id)!= RT_EOK)
@@ -588,72 +591,90 @@ void wifi_factory_set(void)
 		}
 
 		rt_thread_delay(DELAY_MS(200));
-		
+
+#if 1		
 		wifi_send_data((u8*)wifi_enter_at_mode,strlen((u8*)wifi_enter_at_mode));
 
+		ttllen = strlen(wifi_enter_at_mode_return);
+
+		ch = 1;
 		while(1)
 		{
-			if (rt_sem_take(&wifi_uart_dev_my->rx_sem,  DELAY_S(1)) != RT_EOK) continue;
-			
-            /* read one character from device */
-            while (rt_device_read(wifi_uart_dev_my->device, 0, &ch, 1) == 1)
-            {
-            	
-                datatmp[len++] = ch;
+			if (rt_sem_take(&wifi_uart_dev_my->rx_sem,  DELAY_S(3)) == RT_EOK) 
+			{
+		        /* read one character from device */
+		        while (rt_device_read(wifi_uart_dev_my->device, 0, &ch, 1) == 1)
+		        {
+		        	
+		            datatmp[len++] = ch;
+
+					
+					
+		        } 
 
 				
+
 				
-            } 
-			if(len >= strlen(wifi_enter_at_mode_return))
-			{		
-				if(strncmp(wifi_enter_at_mode_return,datatmp,len-1) == 0)
-					{
-
-					break;
-				}
-
-				len = 0;
 			}
 
-			cnt++;
+			if(len >= ttllen)
+			if(strncmp(wifi_enter_at_mode_return,datatmp,len-1) == 0)
+			{
 
-			if(cnt> 3)
+				ch = 0;
+				break;
+			}
+
+
+			if(len == 0)
+				cnt++;
+
+			if(cnt > 3)
+				{
 				goto LABLE_WF_END;
+			}
 		}
-		
+
 		rt_thread_delay(DELAY_S(1));
 		wifi_send_data((u8*)wifi_set_factory,strlen((u8*)wifi_set_factory));
-
+#endif
 		len = 0;
 		cnt = 0;
-		while(1)
+
+		
+		ch = 1;
+		ttllen = strlen(wifi_set_factory_return);
+		while(ch)
 		{
-			if (rt_sem_take(&wifi_uart_dev_my->rx_sem, DELAY_S(1)) != RT_EOK) continue;
-			
-            /* read one character from device */
-            while (rt_device_read(wifi_uart_dev_my->device, 0, &ch, 1) == 1)
-            {
-            	
-                datatmp[len++] = ch;
+			if (rt_sem_take(&wifi_uart_dev_my->rx_sem, DELAY_S(3)) == RT_EOK) 
+			{
+				
+	            /* read one character from device */
+	            while (rt_device_read(wifi_uart_dev_my->device, 0, &ch, 1) == 1)
+		        {
+					
+					datatmp[len++] = ch;
+					
+	            } 
+				
+			}
 
-				
-				
-            } 
-			if(len >= strlen(wifi_set_factory_return))
-			{		
+			if(len >= ttllen)
 				if(strncmp(wifi_set_factory_return,datatmp,len-1) == 0)
-					{
+				{
 
+					ch = 0;
 					break;
 				}
 
-				len = 0;
+			if(len == 0)
+				cnt++;
+
+			if(cnt > 3)
+				{
+				goto LABLE_WF_END;
 			}
 
-						cnt++;
-
-			if(cnt> 3)
-				goto LABLE_WF_END;
 		}
 
 
