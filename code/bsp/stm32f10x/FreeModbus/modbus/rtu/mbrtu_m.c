@@ -188,6 +188,42 @@ eMBMasterRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLengt
     return eStatus;
 }
 
+
+
+eMBErrorCode
+eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength )
+{
+    eMBErrorCode    eStatus = MB_ENOERR;
+    USHORT          usCRC16;
+
+    if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
+
+    ENTER_CRITICAL_SECTION(  );
+
+    /* Check if the receiver is still in idle state. If not we where to
+     * slow with processing the received frame and the master sent another
+     * frame on the network. We have to abort sending the frame.
+     */
+    if( eRcvState == STATE_M_RX_IDLE )
+    {
+        /* First byte before the Modbus-PDU is the slave address. */
+        pucMasterSndBufferCur = ( UCHAR * ) pucFrame;
+        usMasterSndBufferCount = usLength;
+
+
+        /* Activate the transmitter. */
+        eSndState = STATE_M_TX_XMIT;
+        vMBMasterPortSerialEnable( FALSE, TRUE );
+    }
+    else
+    {
+        eStatus = MB_EIO;
+    }
+    EXIT_CRITICAL_SECTION(  );
+    return eStatus;
+}
+
+
 eMBErrorCode
 eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
 {
@@ -228,6 +264,9 @@ eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength 
     EXIT_CRITICAL_SECTION(  );
     return eStatus;
 }
+
+
+
 
 BOOL
 xMBMasterRTUReceiveFSM( void )

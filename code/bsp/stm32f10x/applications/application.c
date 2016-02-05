@@ -92,14 +92,9 @@ void rt_init_thread_entry(void* parameter)
 #define thread_SysMonitor_Prio		    	11
 #define thread_ModbusSlavePoll_Prio      	10
 #define thread_ModbusMasterPoll_Prio      	 9
-ALIGN(RT_ALIGN_SIZE)
-//====================操作系统各线程堆栈====================================
-static rt_uint8_t thread_SysMonitor_stack[256];
-static rt_uint8_t thread_ModbusMasterPoll_stack[512];
 
-struct rt_thread thread_SysMonitor;
 
-struct rt_thread thread_ModbusMasterPoll;
+static rt_serial_t *serial;
 
 
 u16 myreg1,myreg2;
@@ -115,46 +110,62 @@ extern DEVICE_WORK_TYPE device_work_data;
       (((short)(x) &(short)0xff00U) >> 8)))
 
 
+extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut );
+
+u8 rs485_send_buf_not_modbus[30];
+
+void set_dc_motor(void)
+{
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+
+	
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,0,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_NO_ERR)
+	{
+		
+	}
+
+
+}
+
 //***************************系统监控线程***************************
 //函数定义: void thread_entry_SysRunLed(void* parameter)
 //入口参数：无
 //出口参数：无
-//备    注：Editor：Armink   2013-08-02   Company: BXXJS
+//备    注：Editor：  
 //******************************************************************
 void thread_entry_SysMonitor(void* parameter)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 	uint16_t errorCount = 0;
+
+	u8 mstate = 0;
+	
 	while (1)
 	{
 
-		rt_thread_delay(RT_TICK_PER_SECOND);
+		rt_thread_delay(RT_TICK_PER_SECOND/2);
 
-//		errorCode = eMBMasterReqReadDiscreteInputs(1,3,8,RT_WAITING_FOREVER);
-//		errorCode = eMBMasterReqWriteMultipleCoils(1,3,5,ucModbusUserData,RT_WAITING_FOREVER);
-		//errorCode = eMBMasterReqWriteCoil(1,8,0xFF00,RT_WAITING_FOREVER);
-//		errorCode = eMBMasterReqReadCoils(1,3,8,RT_WAITING_FOREVER);
-		//errorCode = eMBMasterReqReadInputRegister(1,1,2,RT_WAITING_FOREVER);
 
-		errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
-
-		if(errorCode == MB_MRE_NO_ERR)
+		for(u8 i=11;i<=15;i++)
 		{
-				device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
-				device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
+			if(errorCode == MB_MRE_NO_ERR)
+			{
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+
+			}
 		}
 
-
-			
 		
-//		errorCode = eMBMasterReqWriteHoldingRegister(1,3,usModbusUserData[0],RT_WAITING_FOREVER);
-//		errorCode = eMBMasterReqWriteMultipleHoldingRegister(1,3,2,usModbusUserData,RT_WAITING_FOREVER);
-//		errorCode = eMBMasterReqReadWriteMultipleHoldingRegister(1,3,2,usModbusUserData,5,2,RT_WAITING_FOREVER);
-		//记录出错次数
-		if (errorCode != MB_MRE_NO_ERR) {
-			errorCount++;
-		}
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/2);
+		set_dc_motor();
+		
+		
 	}
 }
 
@@ -171,10 +182,13 @@ void thread_entry_ModbusMasterPoll(void* parameter)
 {
 	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
+
+	serial = serial1;
+	
 	while (1)
 	{
 		eMBMasterPoll();
-		rt_thread_delay(DELAY_MS(30));
+		rt_thread_delay(DELAY_MS(10));
 	}
 }
 
@@ -204,18 +218,176 @@ void rt_myt1_thread_entry(void* parameter)
 	
 }
 
+//0,off; 1,on
+void ac_esd_set(u8 mode)
+{
+	if(mode)
+		GPIO_SetBits(GPIOB,GPIO_Pin_1);
+	else
+		GPIO_ResetBits(GPIOB,GPIO_Pin_1);
+
+}
+
+
+//0,off; 1,on
+void ac_ac_motor_set(u8 mode)
+{
+	if(mode)
+	{
+		GPIO_SetBits(GPIOB,GPIO_Pin_14);
+		
+		GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+		
+		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+	}
+	else
+	{
+		GPIO_ResetBits(GPIOB,GPIO_Pin_14);
+
+		GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+		
+		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+	}
+}
+
+//0,off; 1,on
+void ac_pht_set(u8 mode)
+{
+	if(mode)
+		GPIO_SetBits(GPIOB,GPIO_Pin_15);
+	else
+		GPIO_ResetBits(GPIOB,GPIO_Pin_15);
+
+}
+
+
+void airclean_out_pin_init(void)
+{
+	GPIO_InitTypeDef GPIOA_InitStructure;
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+	/* configure the rs485 control pin of the receive or send */
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_15|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|;
+	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIOA_InitStructure);
+
+	ac_esd_set(1);
+	ac_pht_set(1);
+	ac_ac_motor_set(1);
+
+	
+
+}
+
+
+//return 0,fault; 1,normal
+u8 motor_state_get(u8 mode)
+{
+	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11));
+
+}
+
+u8 pht_state_get(u8 mode)
+{
+	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2));
+
+}
+
+
+u8 clean_state_get(u8 mode)
+{
+	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_0));
+
+}
+
+
+
+u8 esd_state_get(u8 mode)
+{
+	return (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5));
+
+}
+
+
+
+u8 run_state_get(u8 mode)
+{
+	return (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_4));
+
+}
+
+
+
+void airclean_in_pin_init(void)
+{
+	GPIO_InitTypeDef GPIOA_InitStructure;
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_11|GPIO_Pin_2|GPIO_Pin_0;
+	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOB, &GPIOA_InitStructure);
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_4|GPIO_Pin_5;
+	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIOA_InitStructure);
+
+
+	
+}
+
+
+
+void airclean_system_init(void)
+{
+
+	airclean_in_pin_init();
+	airclean_out_pin_init();
+
+
+}
+
+void rt_check_ex_device_thread_entry(void* parameter)
+{
+
+	while(1)
+	{
+		//0,表示正常,1表示故障
+
+		device_work_data.para_type.fault_state  = motor_state_get(1);//bit7
+		
+		pht_state_get(1);//bit6
+		esd_state_get(1);//bit5
+		
+		run_state_get(1);//bit4
+		clean_state_get(1);//bit3
+
+		
+		rt_thread_delay(RT_TICK_PER_SECOND);
+
+
+	}
+
+}
+
+
 
 void rt_main_thread_entry(void* parameter)
 {
 
-	//rs485_system_init();
-	//osd_init();
+	airclean_system_init();
+
 	rt_thread_delay(600);
 	//rt_key_ctl_init();
 	
 	//rt_adc_ctl_init();
 
-
+	
     wifi_comm_init();
 }
 
@@ -248,20 +420,18 @@ int rt_application_init(void)
         rt_thread_startup(init_thread);
 
 		
-			rt_thread_init(&thread_SysMonitor, "SysMonitor", thread_entry_SysMonitor,
-			RT_NULL, thread_SysMonitor_stack, sizeof(thread_SysMonitor_stack),
-			thread_SysMonitor_Prio, 50);
-	rt_thread_startup(&thread_SysMonitor);
-
-
-	rt_thread_init(&thread_ModbusMasterPoll, "MBMasterPoll",
-			thread_entry_ModbusMasterPoll, RT_NULL, thread_ModbusMasterPoll_stack,
-			sizeof(thread_ModbusMasterPoll_stack), thread_ModbusMasterPoll_Prio,
-			50);
-	rt_thread_startup(&thread_ModbusMasterPoll);
-
-
+    init_thread = rt_thread_create("SysMonitor",
+                                   thread_entry_SysMonitor, RT_NULL,
+                                   512, 11, 50);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
 			
+	init_thread = rt_thread_create("MBMasterPoll",
+								   thread_entry_ModbusMasterPoll, RT_NULL,
+								   512, 9, 50);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+					
 			
     return 0;
 }

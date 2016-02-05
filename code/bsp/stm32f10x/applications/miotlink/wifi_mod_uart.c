@@ -109,10 +109,10 @@ void send_F7_packet(void)
     buf[1] = 0x0E;
     
     buf[2] = 0x01;
-    buf[3] = 0x32;
+    buf[3] = 0x73;
     
     buf[4] = 0x01;
-    buf[5] = 0x32;
+    buf[5] = 0x73;
 
     buf[6] = 0x01;
     buf[7] = 0x00;
@@ -156,7 +156,7 @@ void device_state_init(void)
 
 u8 return_current_device_state(void)
 {
-    u8 buftmp[30];
+    u8 buftmp[35];
 
     buftmp[0] = 0x01;
     buftmp[1] = 0x1b;
@@ -169,7 +169,7 @@ u8 return_current_device_state(void)
 
     }
 
-    wifi_send_packet_data(buftmp,i+2);
+    wifi_send_packet_data(buftmp,29);
 
     return 0;
 }
