@@ -196,7 +196,6 @@ eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength )
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 
-    if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
 
     ENTER_CRITICAL_SECTION(  );
 

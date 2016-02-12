@@ -43,6 +43,7 @@
 #include "includes.h"
 #include "rs485_decode.h"
 #include "app_task.h"
+#include "rtdevice.h"
 
 
 #ifdef RT_USING_RTGUI
@@ -114,13 +115,25 @@ extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHO
 
 u8 rs485_send_buf_not_modbus[30];
 
+
+void set_dc_motor_speed(u8 speed)
+{
+    rs485_send_buf_not_modbus[0] = 0xBC;
+    rs485_send_buf_not_modbus[1] = 0x07;
+    rs485_send_buf_not_modbus[2] = 0x01;
+    rs485_send_buf_not_modbus[3] = speed>3?3:speed;
+    rs485_send_buf_not_modbus[4] = rs485_send_buf_not_modbus[0]+rs485_send_buf_not_modbus[1]+rs485_send_buf_not_modbus[2]+rs485_send_buf_not_modbus[3];
+
+}
+
 void set_dc_motor(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 
 
-	
-	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,0,RT_WAITING_FOREVER);
+	set_dc_motor_speed(device_work_data.para_type.wind_speed_state);
+    
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,5,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_NO_ERR)
 	{
 		
@@ -182,8 +195,8 @@ void thread_entry_ModbusMasterPoll(void* parameter)
 {
 	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
+        extern struct rt_serial_device serial1;
 
-	serial = serial1;
 	
 	while (1)
 	{
@@ -260,6 +273,97 @@ void ac_pht_set(u8 mode)
 
 }
 
+void ac_high_presure_set(u8 mode)
+{
+    
+}
+
+//mode ,1,auto mode; 2,manual mode
+void ac_workmode_set(u8 mode)
+{
+    if(mode > 2)
+        return;
+    if(mode == 0)
+        return;
+    
+}
+
+
+u8 set_device_work_mode(u8 type,u8 data)
+{
+    switch(type)
+        {
+    case 0x02:
+        if(data)
+            device_work_data.para_type.device_power_state = 1;
+        else
+            device_work_data.para_type.device_power_state = 0;
+
+        
+        break;
+    case 0x03:
+        if(data==1||data==2)//1,auto;2,manual
+            device_work_data.para_type.device_mode = data;
+         
+        break;
+    case 0x04:
+        if(data)
+            device_work_data.para_type.high_pressur_state = 1;
+        else
+            device_work_data.para_type.high_pressur_state = 0;
+
+        
+        break;
+    case 0x05:
+        if(data)
+            device_work_data.para_type.pht_work_state = 1;
+        else
+            device_work_data.para_type.pht_work_state = 0;
+
+        ac_pht_set(data);
+        break;
+    case 0x06:
+        if(data<=0x0c)
+            device_work_data.para_type.timing_state = 1;
+        else
+            device_work_data.para_type.timing_state = 0;
+
+        
+        break;
+    case 0x07:
+        if(data<=3)
+            device_work_data.para_type.wind_speed_state = 1;
+        set_dc_motor_speed(data);
+        break;
+
+    default:break;
+
+    }
+	return 1;
+}
+
+
+
+void airclean_work_auto_handle_thread(void * parameter)
+{
+
+    while(1)
+    {
+        if(device_work_data.para_type.device_mode == 1)
+        {//auto
+            
+
+        }
+        else if(device_work_data.para_type.device_mode == 2)
+        {
+            
+
+        }
+
+        rt_thread_delay(RT_TICK_PER_SECOND/20);
+    }
+
+}
 
 void airclean_out_pin_init(void)
 {
@@ -268,7 +372,7 @@ void airclean_out_pin_init(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
 	/* configure the rs485 control pin of the receive or send */
-	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_15|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|;
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_15|GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14;
 	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIOA_InitStructure);
@@ -342,6 +446,29 @@ void airclean_in_pin_init(void)
 }
 
 
+//mode,0,off; 1,on
+void airclean_power_onoff(u8 mode)
+{
+    if(mode>1)
+        return;
+    
+    if(mode)
+    {//on
+        ac_esd_set(1);
+        ac_pht_set(1);
+        ac_ac_motor_set(1);
+        
+    }
+    else
+    {//off
+        ac_esd_set(0);
+        ac_pht_set(0);
+        ac_ac_motor_set(0);
+    }
+    
+    
+}
+
 
 void airclean_system_init(void)
 {
@@ -379,6 +506,7 @@ void rt_check_ex_device_thread_entry(void* parameter)
 
 void rt_main_thread_entry(void* parameter)
 {
+    rt_thread_t init_thread;
 
 	airclean_system_init();
 
@@ -389,6 +517,13 @@ void rt_main_thread_entry(void* parameter)
 
 	
     wifi_comm_init();
+
+    	
+    init_thread = rt_thread_create("work",
+                                   rt_check_ex_device_thread_entry, RT_NULL,
+                                   512, 6, 5);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
 }
 
 
@@ -401,7 +536,7 @@ int rt_application_init(void)
 	
     init_thread = rt_thread_create("mY",
                                    rt_main_thread_entry, RT_NULL,
-                                   1024, 6, 5);
+                                   512, 6, 5);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 
@@ -409,7 +544,7 @@ int rt_application_init(void)
 #if (RT_THREAD_PRIORITY_MAX == 32)
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,
-                                   2048, 8, 20);
+                                   1024, 8, 20);
 #else
     init_thread = rt_thread_create("init",
                                    rt_init_thread_entry, RT_NULL,

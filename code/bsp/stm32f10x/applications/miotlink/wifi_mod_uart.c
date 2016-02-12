@@ -6,7 +6,7 @@
 #include <rtdevice.h>
 #include "bsp.h"
 
-
+#include "application.h"
 
 void uart_wifi_set_device(void);
 
@@ -174,58 +174,10 @@ u8 return_current_device_state(void)
     return 0;
 }
 
-u8 set_device_work_mode(u8 type,u8 data)
-{
-    switch(type)
-        {
-    case 0x02:
-        if(data)
-            device_work_data.para_type.device_power_state = 1;
-        else
-            device_work_data.para_type.device_power_state = 0;
 
-        
-        break;
-    case 0x03:
-        if(data==1||data==2)
-            device_work_data.para_type.device_mode = data;
-         
-        break;
-    case 0x04:
-        if(data)
-            device_work_data.para_type.high_pressur_state = 1;
-        else
-            device_work_data.para_type.high_pressur_state = 0;
 
-        
-        break;
-    case 0x05:
-        if(data)
-            device_work_data.para_type.pht_work_state = 1;
-        else
-            device_work_data.para_type.pht_work_state = 0;
 
-        
-        break;
-    case 0x06:
-        if(data<=0x0c)
-            device_work_data.para_type.timing_state = 1;
-        else
-            device_work_data.para_type.timing_state = 0;
 
-        
-        break;
-    case 0x07:
-        if(data<=3)
-            device_work_data.para_type.wind_speed_state = 1;
-        
-        break;
-
-    default:break;
-
-    }
-	return 1;
-}
 
 u8 wifi_receive_data_decode(u8* buf,u8 len)
 {
@@ -235,18 +187,13 @@ u8 wifi_receive_data_decode(u8* buf,u8 len)
     switch(buf[0])
     {
     case 0x01:
-         return_current_device_state();   
+        return_current_device_state();   
         break;
     case 0x02:
-
-    case 0x03:
-
+    case 0x03:        
     case 0x04:
-
     case 0x05:
-
     case 0x06:
-
     case 0x07:
         set_device_work_mode(buf[0],buf[2]);
         return_current_device_state();  
