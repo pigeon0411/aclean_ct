@@ -16,7 +16,7 @@ typedef union __DEVICE_WORK_TYPE {
 	
     u8 high_pressur_state;
     u8 pht_work_state;
-    u8 timing_state;
+    u8 timing_state; //定时值 为0时表示关闭定时；若为1到12的值时，表示定时的小时数
 
     u16 house1_pm2_5;
     u16 house1_co2;

@@ -242,14 +242,22 @@ void ac_esd_set(u8 mode)
 }
 
 
-//0,off; 1,on
+//0,off; 1,  ;2,  ;
 void ac_ac_motor_set(u8 mode)
 {
-	if(mode)
+	if(mode == 1)
 	{
 		GPIO_SetBits(GPIOB,GPIO_Pin_14);
 		
 		GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+		
+		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+	}
+    else if(mode == 2)
+	{
+		GPIO_ResetBits(GPIOB,GPIO_Pin_14);
+
+		GPIO_SetBits(GPIOB,GPIO_Pin_12);
 		
 		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
 	}
@@ -324,7 +332,7 @@ u8 set_device_work_mode(u8 type,u8 data)
         break;
     case 0x06:
         if(data<=0x0c)
-            device_work_data.para_type.timing_state = 1;
+            device_work_data.para_type.timing_state = data;
         else
             device_work_data.para_type.timing_state = 0;
 
@@ -342,6 +350,27 @@ u8 set_device_work_mode(u8 type,u8 data)
 	return 1;
 }
 
+//
+void airclean_motor_set(u8 mode)
+{
+    ac_ac_motor_set(mode);
+    
+
+}
+
+
+#define PM2_5_LEVEL1_MIN    96
+#define CO2_LEVEL1_MIN      1300
+
+#define PM2_5_LEVEL2_MIN    134
+#define CO2_LEVEL2_MIN      2500
+
+#define PM2_5_LEVEL1_MAX    55
+#define CO2_LEVEL1_MAX      730
+
+#define PM2_5_LEVEL2_MAX    96
+#define CO2_LEVEL2_MAX      1300
+
 
 
 void airclean_work_auto_handle_thread(void * parameter)
@@ -351,8 +380,122 @@ void airclean_work_auto_handle_thread(void * parameter)
     {
         if(device_work_data.para_type.device_mode == 1)
         {//auto
-            
+            if(device_work_data.para_type.house1_pm2_5 > 96 || 
+                device_work_data.para_type.house1_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house2_pm2_5 > 96 || 
+                device_work_data.para_type.house2_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house3_pm2_5 > 96 || 
+                device_work_data.para_type.house3_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house4_pm2_5 > 96 || 
+                device_work_data.para_type.house4_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house5_pm2_5 > 96 || 
+                device_work_data.para_type.house5_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
 
+
+///////////
+            if(device_work_data.para_type.house1_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house1_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house2_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house2_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house3_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house3_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house4_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house4_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house5_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house5_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+
+ ///////////
+            if(device_work_data.para_type.house1_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house1_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house2_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house2_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house3_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house3_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house4_pm2_5 <PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house4_co2 <CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+            else if(device_work_data.para_type.house5_pm2_5 <PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house5_co2 <CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+            }
+
+
+
+
+
+            
         }
         else if(device_work_data.para_type.device_mode == 2)
         {
