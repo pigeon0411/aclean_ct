@@ -126,21 +126,62 @@ void set_dc_motor_speed(u8 speed)
 
 }
 
+extern volatile UCHAR  ucMasterRTURcvBuf[MB_SER_PDU_SIZE_MAX];
+
 void set_dc_motor(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 
 
 	set_dc_motor_speed(device_work_data.para_type.wind_speed_state);
-    
+
+    ucMasterRTURcvBuf[0] = 0;
 	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,5,RT_WAITING_FOREVER);
-	if(errorCode == MB_MRE_NO_ERR)
+	//if(errorCode == MB_MRE_NO_ERR)
 	{
-		
+		if(ucMasterRTURcvBuf[0] == 0xBC && ucMasterRTURcvBuf[1] == 0x07)
+        {
+            u8 tmp;
+
+            tmp  = ucMasterRTURcvBuf[3];
+            if(tmp&0x03)
+                {
+                fault_set_bit(FAULT_MOTOR_BIT,1);
+            }
+            else
+                {
+                fault_set_bit(FAULT_MOTOR_BIT,0);
+            }
+            
+        }   
 	}
 
 
 }
+
+void get_display_board_data(void)
+{
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+    rs485_send_buf_not_modbus[0] = 0xF1;
+    rs485_send_buf_not_modbus[1] = 0xF1;
+    rs485_send_buf_not_modbus[2] = 0x01;
+    rs485_send_buf_not_modbus[3] = 0x01;
+    rs485_send_buf_not_modbus[4] = 0x00;
+    rs485_send_buf_not_modbus[5] = 0x02;
+    rs485_send_buf_not_modbus[6] = 0x7E;
+
+    ucMasterRTURcvBuf[0] = 0;
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	//if(errorCode == MB_MRE_NO_ERR)
+	{
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2)
+        {
+            
+        }      
+	}
+}
+
 
 //***************************系统监控线程***************************
 //函数定义: void thread_entry_SysRunLed(void* parameter)
