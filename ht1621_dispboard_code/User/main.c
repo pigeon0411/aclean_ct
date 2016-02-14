@@ -422,6 +422,8 @@ if (counter_send>20)
 }
 
 
+
+
 int main(void)
 {
 	/* HT1621 ╤к©зеДжц */ 
