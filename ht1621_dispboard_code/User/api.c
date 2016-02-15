@@ -1,4 +1,4 @@
-#include "includes.h"
+
 #include "api.h"
 #include <stdint.h>
 
@@ -7,55 +7,6 @@ vu32 TimeDisplay = 0;
 
 uc8 Escalator8bit[6] = {0x0, 0x33, 0x66, 0x99, 0xCC, 0xFF};
 
-
-/*******************************************************************************
-* Function Name  : NVIC_Init
-* Description    : Initialize the NVIC register
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void BSP_NVIC_Init(void)
-{
-
-	//Configure one bit for preemption priority 
-  	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);  
-
-}
-
-/*******************************************************************************
-* Function Name  : SysTick_API_Init
-* Description    : Configure a SysTick Base time to 10 ms.
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void BSP_SysTick_Init(void)
-{
-  	/* Configure HCLK clock as SysTick clock source */
-  	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
- 
-  	/* SysTick interrupt each 100 Hz with HCLK equal to 72MHz */
-  	SysTick_SetReload(720000);
-
-  	/* Enable the SysTick Interrupt */
-  	SysTick_ITConfig(ENABLE);
-}
-
-/*******************************************************************************
-* Function Name  : 
-* Description    : 
-* Input          : 
-* Output         : None
-* Return         : None
-*******************************************************************************/
-void BSP_Init(void)
-{
-	BSP_RCC_Init();
-	BSP_NVIC_Init();
-	BSP_SysTick_Init();	
-}
 
 
 /* Initialize the USART1----------------------------------------------*/
@@ -118,7 +69,6 @@ void BSP_USART2_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, DISABLE);
-	BSP_DelayMS(10);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
 	/* open the USART2 intterrupt service */
@@ -270,14 +220,14 @@ void APP_USART1_IRQHandler(void)
 		if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET)
 		{	           
 			udr0Temp = ((u16)(USART1->DR & (u16)0x01FF)) & 0xFF;
-			uart0_rx_isr(udr0Temp);
+			//uart0_rx_isr(udr0Temp);
 		}
 	}
 }
 
 
 
-void APP_USART2_Baudrate(u8 baudrate)
+void APP_USART2_Baudrate(u16 baudrate)
 {
 	USART_InitTypeDef USART_2_InitStructure;
 	u16 BaudrateTemp;
@@ -307,6 +257,8 @@ void APP_USART2_Baudrate(u8 baudrate)
 		
 }
 
+extern void serial_int1_receive(u8 udr1);//receive data from USAR1
+extern void serial_int1_send(void);	   //send data to USAR1		   
 
 void APP_USART2_IRQHandler(void)
 {

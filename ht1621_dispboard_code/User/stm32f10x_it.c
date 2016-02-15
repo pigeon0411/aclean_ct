@@ -26,7 +26,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "bsp_TiMbase.h"
-
+#include "api.h"
 
 extern volatile u32 time;
 
@@ -178,6 +178,33 @@ void  macTIM_INT_FUN (void)
 /**
   * @}
   */ 
+
+
+
+
+/*******************************************************************************
+* Function Name  : USART1_IRQHandler
+* Description    : This function handles USART1 global interrupt request.
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void USART1_IRQHandler(void)
+{
+	APP_USART1_IRQHandler();
+}
+
+/*******************************************************************************
+* Function Name  : USART2_IRQHandler
+* Description    : This function handles USART2 global interrupt request.
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void USART2_IRQHandler(void)
+{
+	APP_USART2_IRQHandler();
+}
 
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
