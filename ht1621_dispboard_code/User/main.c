@@ -6,7 +6,7 @@
 #include "api.h"
 
 
-u8 rxd1_buffer[20];
+u8 rxd1_buffer[40];
 u8 counter_receive;
 u8 rxd1_buff_cFlag = 0;
 
@@ -16,37 +16,7 @@ u8 txd1_buff_cFlag;
 u8 cmd_send_lenth;
 
 
-#ifndef DEVICE_WORK_TYPE_MACRO
-#define DEVICE_WORK_TYPE_MACRO
 
-typedef union __DEVICE_WORK_TYPE {
-    struct __para_type
-    {
-    u8 device_power_state;
-    u8 device_mode;
-    u8 wind_speed_state;
-	
-    u8 high_pressur_state;
-    u8 pht_work_state;//0,off;1,on
-    u8 timing_state; //定时值 为0时表示关闭定时；若为1到12的值时，表示定时的小时数
-
-    u16 house1_pm2_5;
-    u16 house1_co2;
-    u16 house2_pm2_5;
-    u16 house2_co2;
-    u16 house3_pm2_5;
-    u16 house3_co2;
-    u16 house4_pm2_5;
-    u16 house4_co2;
-    u16 house5_pm2_5;
-    u16 house5_co2;
-    u8 fault_state; //bit0,motor;bit1,pht; bit2,clean; bit3,esd; bit4,run
-    } para_type;
-    u8 device_data[27];
-
-} DEVICE_WORK_TYPE;
-
-#endif
 
 
 
@@ -70,7 +40,10 @@ void txd1_buffer_send(void)
 	rxd1_buff_cFlag=0;	    //clear camera command receive complete flag
 	//UDR1=txd1_buffer[0];
 
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); //
+
+    RS485_TX_ENABLE;
+    delay_ms(1);
+	//USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); //
 	USART_ITConfig(USART2, USART_IT_TXE, ENABLE); 	 //
 }
 
@@ -126,7 +99,7 @@ u8 return_current_device_state(void)
 
 
 
-void uart1_init(void)
+void uart2_init(void)
 {
  // USART_2_InitStructure.USART_Parity=USART_Parity_Even;
   BSP_USART2_Init();
@@ -136,24 +109,53 @@ void uart1_init(void)
   USART_Cmd(USART2, ENABLE); // Enable USART2
 }
 
+
+
+u8 Isr_i=0;
+u8 Isr_com1=0;
+u8 Isr_j=0;
+u8 Isr_com = 0;
+
+u8 rec_data_num = 0;
+
 void serial_int1_receive(u8 udr1)//receive data from USAR1
 {
     u8 k;
 
-//rxd1_buffer[counter_receive]=UDR1;
-    rxd1_buffer[counter_receive] = udr1;
+    Isr_i = udr1;
 
-    if (rxd1_buffer[counter_receive]==0xff)		   //command end byte
+    if (0x00 == Isr_j) 
     {
-        counter_receive=0;
-        if ((rxd1_buffer[0]==0x90) && ((rxd1_buffer[1] & 0xFE) == 0x50))
-            rxd1_buff_cFlag=1;
+        if(0xF1 !=Isr_i||0xF2 !=Isr_i)
+        {
+            Isr_com = 0; 
+            Isr_j = 0;
+            return;
+        }
+
+        if(0xF1 ==Isr_i)
+            rec_data_num = 7;
+        else
+            rec_data_num = 33;
+        
+        rxd1_buffer[Isr_com] = udr1;
+        Isr_com = 1; 
+		Isr_j = 0x01;
+
     }
     else
-        counter_receive++;
+    {
+        rxd1_buffer[Isr_com] = Isr_i;
+        Isr_com++;
 
-    if (counter_receive > 14)
-        counter_receive = 0;
+        if (Isr_com >= 7)
+		{
+    		Isr_com = 0x00; 
+    		Isr_j = 0x00; 
+    		rxd1_buff_cFlag = 0x01;	
+        }
+    }
+    
 }
 
 
@@ -175,6 +177,7 @@ void serial_int1_send(void)	   //send data to USAR1
 	    counter_send = 1;
 		txd1_buff_cFlag = 1;
 		USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
+        RS485_RX_ENABLE;
 	   }
     
     if (counter_send>20)
@@ -182,35 +185,58 @@ void serial_int1_send(void)	   //send data to USAR1
 }
 
 
+void cmd_uart_check(void)
+{
+    if(rxd1_buff_cFlag)
+    {
+        rxd1_buff_cFlag = 0;
 
+        if(rxd1_buffer[0] == 0xF1 && rxd1_buffer[1] == 0xf1)
+        {
+            if(rxd1_buffer[2] == 0x01)
+            {
+                return_current_device_state();
+
+            }
+        }
+        else if(rxd1_buffer[0] == 0xF2 && rxd1_buffer[1] == 0xf2)
+        {
+
+
+        }
+
+    }
+
+}
 
 int main(void)
 {
-	/* HT1621 端口配置 */ 
-	 HT1621_GPIO_Config ();
+    /* HT1621 端口配置 */ 
+    HT1621_GPIO_Config ();
 
-	/* 通用定时器 TIMx,x[2,3,4,5] 定时配置 */	
-        TIMx_Configuration();
-	
+    /* 通用定时器 TIMx,x[2,3,4,5] 定时配置 */	
+    TIMx_Configuration();
+
 	/* 配置通用定时器 TIMx,x[2,3,4,5]的中断优先级 */
 	TIMx_NVIC_Configuration();
 
 	/* 通用定时器 TIMx,x[2,3,4,5] 重新开时钟，开始计时 */
 	macTIM_APBxClock_FUN (macTIM_CLK, ENABLE);
 	
-	uart1_init();
+	uart2_init();
+
+    
 	HT1621_BL(OFF);
-       Ht1621_clrbuf(); 
-       Ht1621_cls();  //清屏
-       delay_ms(50);
+    Ht1621_clrbuf(); 
+    Ht1621_cls();  //清屏
+    delay_ms(50);
 	
   while(1)
   {
-      
      Key_Scan();   //按键扫描
      PollingKey();
      onoff_Scan(); //开关机
- 	
+     cmd_uart_check();	
   }
 }
 /*********************************************END OF FILE**********************/

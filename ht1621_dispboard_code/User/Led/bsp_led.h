@@ -3,6 +3,43 @@
 
 #include "stm32f10x.h"
 
+
+
+#ifndef DEVICE_WORK_TYPE_MACRO
+#define DEVICE_WORK_TYPE_MACRO
+
+typedef union __DEVICE_WORK_TYPE {
+    struct __para_type
+    {
+    u8 device_power_state;
+    u8 device_mode;
+    u8 wind_speed_state;
+	
+    u8 high_pressur_state;
+    u8 pht_work_state;//0,off;1,on
+    u8 timing_state; //定时值 为0时表示关闭定时；若为1到12的值时，表示定时的小时数
+
+    u16 house1_pm2_5;
+    u16 house1_co2;
+    u16 house2_pm2_5;
+    u16 house2_co2;
+    u16 house3_pm2_5;
+    u16 house3_co2;
+    u16 house4_pm2_5;
+    u16 house4_co2;
+    u16 house5_pm2_5;
+    u16 house5_co2;
+    u8 fault_state; //bit0,motor;bit1,pht; bit2,clean; bit3,esd; bit4,run
+    } para_type;
+    u8 device_data[27];
+
+} DEVICE_WORK_TYPE;
+
+#endif
+
+
+extern DEVICE_WORK_TYPE device_work_data;
+
 //#ifndef __HT1621_H
 
 /* 定义HT1621连接的GPIO端口, 用户只需要修改下面的代码即可改变控制的HT1621引脚 */

@@ -39,10 +39,10 @@
 #define RS485TXD1 GPIO_Pin_9		/* PA9 */
 
 
-#define RS485Control GPIO_Pin_9		/* PB9 */
+#define RS485Control GPIO_Pin_1	/* PA1 */
 
-#define	RS485_RX_TX_CTL_PORT	GPIOB	//rs485发送，接收使能引脚控制为PE0
-#define	RS485_RX_TX_CTL_PIN		GPIO_Pin_9
+#define	RS485_RX_TX_CTL_PORT	GPIOA	//rs485发送，接收使能引脚控制为PE0
+#define	RS485_RX_TX_CTL_PIN		GPIO_Pin_1
 
 #define	RS485_RX_ENABLE		(RS485_RX_TX_CTL_PORT->BRR = RS485_RX_TX_CTL_PIN)
 

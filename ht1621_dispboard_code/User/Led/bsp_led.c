@@ -677,15 +677,20 @@ void pin2_Scan(void)  //静电开关
      if(key1==ON)
       {
        Ht1621Tab2[16]=0x08;   //T1 静电  08
+       device_work_data.para_type.high_pressur_state = 1;
       }
      else if(count1==ON)
       {
        Ht1621Tab2[16]=0x08;   //T1 静电  08
+              device_work_data.para_type.high_pressur_state = 1;
+
 	}  
     else
-     {
-      Ht1621Tab2[16]&=~0x08;   //T1 静电  08
-      }
+    {
+        Ht1621Tab2[16]&=~0x08;   //T1 静电  08
+        device_work_data.para_type.high_pressur_state = 0;
+
+    }
     Ht1621_on_disp(0); 
 }
 
