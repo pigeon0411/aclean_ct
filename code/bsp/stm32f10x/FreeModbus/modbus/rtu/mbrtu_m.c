@@ -191,7 +191,7 @@ eMBMasterRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLengt
 
 
 eMBErrorCode
-eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength )
+eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength )//发送非标准的数据
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
@@ -222,6 +222,9 @@ eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength )
     return eStatus;
 }
 
+extern u8 mb_switch_flag;
+extern u8 mb_not_rtu_data_len;
+extern u8 rs485_send_buf_not_modbus[50];
 
 eMBErrorCode
 eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
@@ -229,6 +232,12 @@ eMBMasterRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength 
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 
+    if(mb_switch_flag)
+    {
+        return (eMBMaster_Send_not_datas(rs485_send_buf_not_modbus,mb_not_rtu_data_len) );
+        
+    }
+    
     if ( ucSlaveAddress > MB_MASTER_TOTAL_SLAVE_NUM ) return MB_EINVAL;
 
     ENTER_CRITICAL_SECTION(  );

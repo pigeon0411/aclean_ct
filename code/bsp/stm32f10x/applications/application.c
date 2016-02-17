@@ -46,6 +46,11 @@
 #include "rtdevice.h"
 
 
+
+extern void fault_set_bit(u8 fault_type,u8 val) ;
+
+
+
 #ifdef RT_USING_RTGUI
 rt_bool_t cali_setup(void)
 {
@@ -113,7 +118,7 @@ extern DEVICE_WORK_TYPE device_work_data;
 
 extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut );
 
-u8 rs485_send_buf_not_modbus[30];
+u8 rs485_send_buf_not_modbus[50];
 
 
 void set_dc_motor_speed(u8 speed)
@@ -126,7 +131,8 @@ void set_dc_motor_speed(u8 speed)
 
 }
 
-extern volatile UCHAR  ucMasterRTURcvBuf[MB_SER_PDU_SIZE_MAX];
+extern volatile UCHAR  ucMasterRTURcvBuf[256];
+extern volatile UCHAR  ucMasterRTUSndBuf[256];
 
 void set_dc_motor(void)
 {
@@ -201,7 +207,7 @@ void thread_entry_SysMonitor(void* parameter)
 
 		rt_thread_delay(RT_TICK_PER_SECOND/2);
 
-
+    #if 0
 		for(u8 i=11;i<=15;i++)
 		{
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
@@ -213,7 +219,7 @@ void thread_entry_SysMonitor(void* parameter)
 
 			}
 		}
-
+    #endif
 		
 		
 		rt_thread_delay(RT_TICK_PER_SECOND/2);
