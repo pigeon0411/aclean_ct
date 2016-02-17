@@ -17,6 +17,7 @@ u8 cmd_send_lenth;
 
 
 
+extern volatile  u8 Ht1621_BUF[];
 
 
 
@@ -69,6 +70,7 @@ u8 wifi_send_packet_data(u8* buf,u8 len)
     wifi_send_packet_buf_pub[i+2] = chk;
     wifi_send_packet_buf_pub[i+3] = 0x7E;
 
+    cmd_send_lenth = len+4;
     //wifi_send_data(wifi_send_packet_buf_pub,len+4);
 	txd1_buffer_send();
 		return 1;
@@ -126,7 +128,7 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
 
     if (0x00 == Isr_j) 
     {
-        if(0xF1 !=Isr_i||0xF2 !=Isr_i)
+        if(0xF1 !=Isr_i && 0xF2 !=Isr_i)
         {
             Isr_com = 0; 
             Isr_j = 0;
@@ -163,25 +165,25 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
 void serial_int1_send(void)	   //send data to USAR1		   
 {
 
-    if (counter_send < cmd_send_lenth)
+    if (counter_send <= cmd_send_lenth)
 //	   UDR1=txd1_buffer[counter_send++];
 	{
-		USART_SendData(USART2, wifi_send_packet_buf_pub[counter_send-1]);
+		USART_SendData(USART2, wifi_send_packet_buf_pub[counter_send]);
 		USART_ClearITPendingBit(USART2, USART_IT_TXE);
 		counter_send++;
 	}
     else
 	   {
-	   	USART_SendData(USART2, wifi_send_packet_buf_pub[counter_send-1]);
+	   	USART_SendData(USART2, wifi_send_packet_buf_pub[counter_send]);
 		USART_ClearITPendingBit(USART2, USART_IT_TXE);
-	    counter_send = 1;
+	    counter_send = 0;
 		txd1_buff_cFlag = 1;
 		USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
         RS485_RX_ENABLE;
 	   }
     
-    if (counter_send>20)
-        counter_send=1; 
+    if (counter_send>40)
+        counter_send=0; 
 }
 
 
@@ -201,13 +203,22 @@ void cmd_uart_check(void)
         }
         else if(rxd1_buffer[0] == 0xF2 && rxd1_buffer[1] == 0xf2)
         {
+            Ht1621_BUF[0]= rxd1_buffer[10]>>4;   //PM2.5 高位
+            Ht1621_BUF[1]= rxd1_buffer[10]&0x0f;  //PM2.5 
+            Ht1621_BUF[2]= rxd1_buffer[11]>>4;  //PM2.5 
+            Ht1621_BUF[3]= rxd1_buffer[11]&0x0f;  //PM2.5 低位
 
-
+            Ht1621_BUF[7]=rxd1_buffer[12]>>4;  // co2 低位
+            Ht1621_BUF[8]=rxd1_buffer[12]&0x0f;  //co2 
+            Ht1621_BUF[9]=rxd1_buffer[13]>>4;  //co2 
+            Ht1621_BUF[10]=rxd1_buffer[13]&0x0f;  //co2 高位
         }
 
     }
 
 }
+
+
 
 int main(void)
 {
@@ -230,9 +241,11 @@ int main(void)
     Ht1621_clrbuf(); 
     Ht1621_cls();  //清屏
     delay_ms(50);
-	
+
+
   while(1)
   {
+  
      Key_Scan();   //按键扫描
      PollingKey();
      onoff_Scan(); //开关机

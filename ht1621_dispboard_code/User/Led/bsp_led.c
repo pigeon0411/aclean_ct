@@ -698,14 +698,18 @@ void pin3_Scan(void)  //光氢开关
 {
         if(key2==ON)
         {
+        device_work_data.para_type.pht_work_state = 1;
         Ht1621Tab2[15]=0x04;  //T2 光氢   04
         }
 	else if(count1==1)
 	 {
+	 device_work_data.para_type.pht_work_state = 1;
          Ht1621Tab2[15]=0x04;  //T2 光氢   04
 	 }
         else
         {
+
+        device_work_data.para_type.pht_work_state = 0;
         Ht1621Tab2[15]&=~0x04;  //T2 光氢   04
         }
     Ht1621_on_disp(0); 
@@ -716,16 +720,21 @@ void pin4_Scan(void) //风速
         if(count==0)
         {
         Ht1621Tab2[18]=0x08;  //S3 风速低     08
+
+        device_work_data.para_type.wind_speed_state = 1;
         }
 			
         if(count==1)
         {
         Ht1621Tab2[18]=0x04;  //S4 风速中     04
+        device_work_data.para_type.wind_speed_state = 2;
         }
 		
         if(count==2)
         { 
         Ht1621Tab2[18]=0x02;  //S5 风速高     02
+        device_work_data.para_type.wind_speed_state = 3;
+        
         }
 		
      Ht1621_on_disp(12); 
@@ -738,12 +747,14 @@ void pin5_Scan(void) //智能/手动/定时
          Ht1621_off_disp(3);   //T7  关智能
          Ht1621_off_disp(1);    //T9 关定时
          Ht1621_on_disp(2);   //T8 开手动
+         device_work_data.para_type.device_mode = 0;
         }
         if(count1==1)
         {
         Ht1621_off_disp(2);    //T8 关手动
         Ht1621_on_disp(3);    //T7  开智能
         Ht1621_off_disp(1);    //T9 关定时
+        device_work_data.para_type.device_mode = 1;
         }
 		
         if(key4 ==0)
