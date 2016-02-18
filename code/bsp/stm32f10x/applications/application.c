@@ -143,7 +143,7 @@ void set_dc_motor(void)
 
     ucMasterRTURcvBuf[0] = 0;
 	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,5,RT_WAITING_FOREVER);
-	//if(errorCode == MB_MRE_NO_ERR)
+	if(errorCode == MB_MRE_REV_DATA)
 	{
 		if(ucMasterRTURcvBuf[0] == 0xBC && ucMasterRTURcvBuf[1] == 0x07)
         {
@@ -179,14 +179,72 @@ void get_display_board_data(void)
 
     ucMasterRTURcvBuf[0] = 0;
 	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
-	//if(errorCode == MB_MRE_NO_ERR)
+	if(errorCode == MB_MRE_REV_DATA)
 	{
-		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2)
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
         {
-            
+            device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
+            device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
+            device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
+            device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
+            device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
+            device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
         }      
 	}
 }
+
+u8 disp_board_packet_data(u8 len)
+{
+
+    u8 buftmp[35];
+
+    buftmp[0] = 0x01;
+    buftmp[1] = 0x1b;
+
+    u8 i;
+
+    for(i=0;i<27;i++)
+        {
+        buftmp[2+i] = device_work_data.device_data[i];
+
+    }
+
+
+    u8 chk;
+
+
+    rs485_send_buf_not_modbus[0] = 0xF2;
+    rs485_send_buf_not_modbus[1] = 0xF2;
+
+    for(i=0;i<len;i++)
+    {
+        rs485_send_buf_not_modbus[i+2] = buftmp[i];
+        chk += buftmp[i];    
+    }
+
+    rs485_send_buf_not_modbus[i+2] = chk;
+    rs485_send_buf_not_modbus[i+3] = 0x7E;
+
+}
+
+
+void set_display_board_data(void)
+{
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+    disp_board_packet_data(33-4);
+
+    ucMasterRTURcvBuf[0] = 0;
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_REV_DATA)
+	{
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+        {
+            ;
+        }      
+	}
+}
+
 
 
 //***************************系统监控线程***************************
@@ -201,14 +259,26 @@ void thread_entry_SysMonitor(void* parameter)
 	uint16_t errorCount = 0;
 
 	u8 mstate = 0;
-	
+
+    u8 cnttmp = 0;
 	while (1)
 	{
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+        
+        set_display_board_data(); //100ms
+        
+        if(cnttmp < 255)
+            cnttmp++;
 
-		rt_thread_delay(RT_TICK_PER_SECOND/2);
-
-    #if 0
-		for(u8 i=11;i<=15;i++)
+        if(cnttmp > 10)
+        {
+    		set_dc_motor();//1s
+    		
+    		get_display_board_data(); //1s
+    		
+    #if 1
+		for(u8 i=11;i<=15;i++)//1s
 		{
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
@@ -220,12 +290,11 @@ void thread_entry_SysMonitor(void* parameter)
 			}
 		}
     #endif
-		
-		
-		rt_thread_delay(RT_TICK_PER_SECOND/2);
-		set_dc_motor();
-		
-		
+        cnttmp = 0;
+
+        }
+
+        
 	}
 }
 
