@@ -10,7 +10,7 @@ rt_err_t wifi_send_data(u8* data,u16 len);
 typedef union __DEVICE_WORK_TYPE {
     struct __para_type
     {
-    u8 device_power_state;
+    u8 device_power_state; //0,off;1,on
     u8 device_mode;
     u8 wind_speed_state;
 	

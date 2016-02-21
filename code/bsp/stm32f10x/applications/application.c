@@ -444,9 +444,10 @@ u8 set_device_work_mode(u8 type,u8 data)
     case 0x02:
         if(data)
             device_work_data.para_type.device_power_state = 1;
+            airclean_power_onoff(1);
         else
             device_work_data.para_type.device_power_state = 0;
-
+            airclean_power_onoff(0);
         
         break;
     case 0x03:
@@ -892,6 +893,30 @@ void rt_main_thread_entry(void* parameter)
 }
 
 
+u32 power_tim_cnt = 0;
+
+void thread_entry_power_monitor (void* parameter)
+{
+    
+    while(1)
+    {
+        if(power_tim_cnt < 0xFFFFFFFF)
+            power_tim_cnt++;
+
+        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60))
+        {
+            airclean_power_onoff(0);
+            power_tim_cnt = 0;
+        }
+        else
+        {
+        
+
+        }
+        rt_thread_delay(RT_TICK_PER_SECOND/10);
+    }
+}
+
 
 int rt_application_init(void)
 {
@@ -929,6 +954,13 @@ int rt_application_init(void)
 	init_thread = rt_thread_create("MBMasterPoll",
 								   thread_entry_ModbusMasterPoll, RT_NULL,
 								   512, 9, 50);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+
+
+	init_thread = rt_thread_create("power",
+								   thread_entry_power_monitor, RT_NULL,
+								   256, 9, 50);
 	if (init_thread != RT_NULL)
 		rt_thread_startup(init_thread);
 					
