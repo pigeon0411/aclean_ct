@@ -16,6 +16,8 @@ u8 txd1_buff_cFlag;
 u8 cmd_send_lenth;
 
 
+extern u32 time_tick_cnt;
+
 
 extern volatile  u8 Ht1621_BUF[];
 
@@ -122,7 +124,7 @@ u8 rec_data_num = 0;
 
 void serial_int1_receive(u8 udr1)//receive data from USAR1
 {
-    u8 k;
+//    u8 k;
 
     Isr_i = udr1;
 
@@ -203,15 +205,25 @@ void cmd_uart_check(void)
         }
         else if(rxd1_buffer[0] == 0xF2 && rxd1_buffer[1] == 0xf2)
         {
-            Ht1621_BUF[0]= rxd1_buffer[10]>>4;   //PM2.5 高位
-            Ht1621_BUF[1]= rxd1_buffer[10]&0x0f;  //PM2.5 
-            Ht1621_BUF[2]= rxd1_buffer[11]>>4;  //PM2.5 
-            Ht1621_BUF[3]= rxd1_buffer[11]&0x0f;  //PM2.5 低位
 
-            Ht1621_BUF[7]=rxd1_buffer[12]>>4;  // co2 低位
-            Ht1621_BUF[8]=rxd1_buffer[12]&0x0f;  //co2 
-            Ht1621_BUF[9]=rxd1_buffer[13]>>4;  //co2 
-            Ht1621_BUF[10]=rxd1_buffer[13]&0x0f;  //co2 高位
+            device_work_data.para_type.house1_co2 = (u16)rxd1_buffer[10]<<8+rxd1_buffer[11];
+			device_work_data.para_type.house1_pm2_5 = (u16)rxd1_buffer[12]<<8+rxd1_buffer[13];
+
+
+            device_work_data.para_type.house2_co2 = (u16)rxd1_buffer[14]<<8+rxd1_buffer[15];
+			device_work_data.para_type.house2_pm2_5 = (u16)rxd1_buffer[16]<<8+rxd1_buffer[17];
+
+
+            device_work_data.para_type.house3_co2 = (u16)rxd1_buffer[18]<<8+rxd1_buffer[19];
+			device_work_data.para_type.house3_pm2_5 = (u16)rxd1_buffer[20]<<8+rxd1_buffer[21];
+
+            device_work_data.para_type.house4_co2 = (u16)rxd1_buffer[22]<<8+rxd1_buffer[23];
+			device_work_data.para_type.house4_pm2_5 = (u16)rxd1_buffer[24]<<8+rxd1_buffer[25];
+
+            device_work_data.para_type.house5_co2 = (u16)rxd1_buffer[26]<<8+rxd1_buffer[27];
+			device_work_data.para_type.house5_pm2_5 = (u16)rxd1_buffer[28]<<8+rxd1_buffer[29];
+
+     
         }
 
     }
@@ -219,11 +231,18 @@ void cmd_uart_check(void)
 }
 
 
+#define TICKS_PER_SECOND            1000
+u8 house_id = 1;
 
 int main(void)
 {
+    u8 mybuff[10];
+
     /* HT1621 端口配置 */ 
     HT1621_GPIO_Config ();
+
+    SysTick_Config(SystemCoreClock / 1000);
+
 
     /* 通用定时器 TIMx,x[2,3,4,5] 定时配置 */	
     TIMx_Configuration();
@@ -243,14 +262,76 @@ int main(void)
     delay_ms(50);
 
 
-  while(1)
-  {
-  
-     Key_Scan();   //按键扫描
-     PollingKey();
-     onoff_Scan(); //开关机
-     cmd_uart_check();	
-  }
+    while(1)
+    {
+
+        Key_Scan();   //按键扫描
+        PollingKey();
+        onoff_Scan(); //开关机
+        cmd_uart_check();	
+
+        if(time_tick_cnt> TICKS_PER_SECOND )
+        {
+            if(house_id >= 5)
+                house_id = 1;
+            else
+                house_id++;
+
+            Ht1621_BUF[4]=house_id;  //房间号
+            
+            switch(house_id)
+            {
+            case 1:
+                
+                mybuff[0] = device_work_data.para_type.house1_pm2_5>>8;
+                mybuff[1] = device_work_data.para_type.house1_pm2_5&0xff;
+                mybuff[2] = device_work_data.para_type.house1_co2>>8;
+                mybuff[3] = device_work_data.para_type.house1_co2&0xff;
+				
+                break;
+            case 2:
+                mybuff[0] = device_work_data.para_type.house2_pm2_5>>8;
+                mybuff[1] = device_work_data.para_type.house2_pm2_5&0xff;
+                mybuff[2] = device_work_data.para_type.house2_co2>>8;
+                mybuff[3] = device_work_data.para_type.house2_co2&0xff;
+                break;
+            case 3:
+                mybuff[0] = device_work_data.para_type.house3_pm2_5>>8;
+                mybuff[1] = device_work_data.para_type.house3_pm2_5&0xff;
+                mybuff[2] = device_work_data.para_type.house3_co2>>8;
+                mybuff[3] = device_work_data.para_type.house3_co2&0xff;
+                break;
+            case 4:
+                mybuff[0] = device_work_data.para_type.house4_pm2_5>>8;
+                mybuff[1] = device_work_data.para_type.house4_pm2_5&0xff;
+                mybuff[2] = device_work_data.para_type.house4_co2>>8;
+                mybuff[3] = device_work_data.para_type.house4_co2&0xff;
+                break;
+            case 5:
+                mybuff[0] = device_work_data.para_type.house5_pm2_5>>8;
+                mybuff[1] = device_work_data.para_type.house5_pm2_5&0xff;
+                mybuff[2] = device_work_data.para_type.house5_co2>>8;
+                mybuff[3] = device_work_data.para_type.house5_co2&0xff;
+                break;
+
+            default:
+                break;
+            }         
+
+
+            Ht1621_BUF[0]= mybuff[2]>>4;   //PM2.5 高位
+            Ht1621_BUF[1]= mybuff[2]&0x0f;  //PM2.5 
+            Ht1621_BUF[2]= mybuff[3]>>4;  //PM2.5 
+            Ht1621_BUF[3]= mybuff[3]&0x0f;  //PM2.5 低位
+
+            Ht1621_BUF[7]=mybuff[0]>>4;  // co2 低位
+            Ht1621_BUF[8]=mybuff[0]&0x0f;  //co2 
+            Ht1621_BUF[9]=mybuff[1]>>4;  //co2 
+            Ht1621_BUF[10]=mybuff[1]&0x0f;  //co2 高位
+            
+            time_tick_cnt = 0;
+        }
+    }
 }
 /*********************************************END OF FILE**********************/
 

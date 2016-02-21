@@ -283,9 +283,33 @@ void thread_entry_SysMonitor(void* parameter)
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
-			{
-					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+			{   
+			    switch(i)
+                {
+                case 11:
+                    device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+                    break;
+                case 11:
+                    device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house2_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+                    break;
+                case 11:
+                    device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house3_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+                    break;
+                case 11:
+                    device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house4_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+                    break;
+                case 11:
+                    device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house5_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+                    break;
+
+                default:
+                    break;
+                }         
 
 			}
 		}

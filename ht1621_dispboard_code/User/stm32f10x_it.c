@@ -139,10 +139,13 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
+
+u32 time_tick_cnt = 0;
 void SysTick_Handler(void)
 {
-
-
+    if(time_tick_cnt<0xFFFFFFFF)
+        time_tick_cnt++;
+    
 }
 
 /******************************************************************************/
