@@ -508,7 +508,7 @@ int wifi_uart_init(void)
 
 void wifi_comm_init(void)
 {
-    device_state_init();
+    //device_state_init();
     wifi_uart_init();
 
 }

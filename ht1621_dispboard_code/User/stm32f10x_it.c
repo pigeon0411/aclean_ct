@@ -141,12 +141,17 @@ void PendSV_Handler(void)
   */
 
 u32 time_tick_cnt = 0;
+u32 time_tick_cnt2=0;
 void SysTick_Handler(void)
 {
     if(time_tick_cnt<0xFFFFFFFF)
         time_tick_cnt++;
     
+    
+	if(time_tick_cnt2<0xFFFFFFFF)
+		time_tick_cnt2++;
 }
+
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */

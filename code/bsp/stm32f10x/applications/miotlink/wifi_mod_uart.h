@@ -41,6 +41,7 @@ typedef union __DEVICE_WORK_TYPE {
 #define FAULT_CLEAN_BIT    (2)
 #define FAULT_ESD_BIT    (3)
 #define FAULT_RUN_BIT    (4)
+#define FAULT_WIND_BIT    (5)
 
 
 

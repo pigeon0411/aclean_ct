@@ -48,6 +48,7 @@
 
 
 extern void fault_set_bit(u8 fault_type,u8 val) ;
+void airclean_power_onoff(u8 mode);
 
 
 
@@ -235,7 +236,7 @@ void set_display_board_data(void)
     disp_board_packet_data(33-4);
 
     ucMasterRTURcvBuf[0] = 0;
-	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,33,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_REV_DATA)
 	{
 		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
@@ -264,60 +265,59 @@ void thread_entry_SysMonitor(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
+		rt_thread_delay(RT_TICK_PER_SECOND*3);
         
         set_display_board_data(); //100ms
-        
-        if(cnttmp < 255)
-            cnttmp++;
+#if 0
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
-        if(cnttmp > 10)
-        {
-    		set_dc_motor();//1s
-    		
-    		get_display_board_data(); //1s
-    		
-    #if 1
+        
+		set_dc_motor();//1s
+
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+
 		for(u8 i=11;i<=15;i++)//1s
 		{
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
-			{   
-			    switch(i)
-                {
-                case 11:
-                    device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+			{	
+				switch(i)
+				{
+				case 11:
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-                    break;
-                case 11:
-                    device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[0][0]);
+					break;
+				case 12:
+					device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house2_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-                    break;
-                case 11:
-                    device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[0][0]);
+					break;
+				case 13:
+					device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house3_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-                    break;
-                case 11:
-                    device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[0][0]);
+					break;
+				case 14:
+					device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house4_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-                    break;
-                case 11:
-                    device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[0][0]);
+					break;
+				case 15:
+					device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[0][0]);
 					device_work_data.para_type.house5_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-                    break;
+					break;
 
-                default:
-                    break;
-                }         
+				default:
+					break;
+				}		  
 
 			}
 		}
-    #endif
-        cnttmp = 0;
 
-        }
 
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
+		
+		get_display_board_data(); //1s
+#endif		
         
 	}
 }
@@ -414,10 +414,14 @@ void ac_ac_motor_set(u8 mode)
 //0,off; 1,on
 void ac_pht_set(u8 mode)
 {
+	if(mode>1)
+		mode = 1;
 	if(mode)
 		GPIO_SetBits(GPIOB,GPIO_Pin_15);
 	else
 		GPIO_ResetBits(GPIOB,GPIO_Pin_15);
+
+	device_work_data.para_type.pht_work_state = mode;
 
 }
 
@@ -443,12 +447,13 @@ u8 set_device_work_mode(u8 type,u8 data)
         {
     case 0x02:
         if(data)
-            device_work_data.para_type.device_power_state = 1;
+        {    device_work_data.para_type.device_power_state = 1;
             airclean_power_onoff(1);
+				}
         else
-            device_work_data.para_type.device_power_state = 0;
+        {    device_work_data.para_type.device_power_state = 0;
             airclean_power_onoff(0);
-        
+        }
         break;
     case 0x03:
         if(data==1||data==2)//1,auto;2,manual
@@ -735,23 +740,43 @@ void airclean_out_pin_init(void)
 }
 
 
-//return 0,fault; 1,normal
+//return 1,fault; 0,normal
 u8 motor_state_get(u8 mode)
 {
-	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11));
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11))
+		return 0;
+	else
+		return 1;
 
 }
 
+//return 1,fault; 0,normal
+u8 wind_state_get(u8 mode)
+{
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_10))
+		return 0;
+	else
+		return 1;
+
+}
+
+
 u8 pht_state_get(u8 mode)
 {
-	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2));
+	if( (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)))
+		return 0;
+	else
+		return 1;
 
 }
 
 
 u8 clean_state_get(u8 mode)
 {
-	return (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_0));
+	if( (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_0)))
+		return 0;
+	else
+		return 1;
 
 }
 
@@ -759,7 +784,10 @@ u8 clean_state_get(u8 mode)
 
 u8 esd_state_get(u8 mode)
 {
-	return (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5));
+	if (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5))
+		return 0;
+	else
+		return 1;
 
 }
 
@@ -767,7 +795,10 @@ u8 esd_state_get(u8 mode)
 
 u8 run_state_get(u8 mode)
 {
-	return (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_4));
+	if (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_4))
+		return 0;
+	else
+		return 1;
 
 }
 
@@ -779,7 +810,7 @@ void airclean_in_pin_init(void)
 	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_11|GPIO_Pin_2|GPIO_Pin_0;
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_11|GPIO_Pin_2|GPIO_Pin_0|GPIO_Pin_10;
 	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIOA_InitStructure);
@@ -832,9 +863,9 @@ void airclean_system_init(void)
 void fault_set_bit(u8 fault_type,u8 val) 
 {
     if(val)
-        device_work_data.para_type.fault_state |= val<<fault_type;
+        device_work_data.para_type.fault_state |= 1<<fault_type;
     else
-        device_work_data.para_type.fault_state &= ~(val<<fault_type);
+        device_work_data.para_type.fault_state &= ~(1<<fault_type);
     
 
 }
@@ -860,6 +891,8 @@ void rt_check_ex_device_thread_entry(void* parameter)
         fault_set_bit(FAULT_ESD_BIT,esd_state_get(1));
         fault_set_bit(FAULT_RUN_BIT,run_state_get(1));
         fault_set_bit(FAULT_CLEAN_BIT,clean_state_get(1));
+		
+			fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
 
 		
 		rt_thread_delay(RT_TICK_PER_SECOND);
@@ -873,6 +906,10 @@ void rt_check_ex_device_thread_entry(void* parameter)
 void rt_main_thread_entry(void* parameter)
 {
     rt_thread_t init_thread;
+
+	device_state_init();
+
+	
 
 	airclean_system_init();
 
@@ -905,8 +942,11 @@ void thread_entry_power_monitor (void* parameter)
 
         if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60))
         {
-            airclean_power_onoff(0);
+        	if(device_work_data.para_type.timing_state)
+            {airclean_power_onoff(0);
             power_tim_cnt = 0;
+
+        		}
         }
         else
         {

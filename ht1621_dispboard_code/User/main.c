@@ -116,21 +116,32 @@ void uart2_init(void)
 
 
 u8 Isr_i=0;
-u8 Isr_com1=0;
 u8 Isr_j=0;
 u8 Isr_com = 0;
 
 u8 rec_data_num = 0;
+extern u32 time_tick_cnt2;
 
 void serial_int1_receive(u8 udr1)//receive data from USAR1
 {
 //    u8 k;
 
-    Isr_i = udr1;
+	static u32 cnt_tmp=0;
 
+	if(time_tick_cnt2 > cnt_tmp)
+		{
+			
+		if(time_tick_cnt2-cnt_tmp > 800)
+			{
+			Isr_j = 0;
+			return;
+		}
+	}
+
+	
     if (0x00 == Isr_j) 
     {
-        if(0xF1 !=Isr_i && 0xF2 !=Isr_i)
+        if(0xF1 !=udr1 && 0xF2 !=udr1)
         {
             Isr_com = 0; 
             Isr_j = 0;
@@ -149,17 +160,39 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
     }
     else
     {
-        rxd1_buffer[Isr_com] = Isr_i;
+    	if(Isr_com == 1)
+		{
+			if(udr1 != 0xF1 && rxd1_buffer[0] == 0Xf1)
+				{
+				Isr_com = 0; 
+				Isr_j = 0;
+				return;
+
+
+			}
+			else if(udr1 != 0xF2 && rxd1_buffer[0] == 0Xf2)
+				{
+				            Isr_com = 0; 
+            Isr_j = 0;
+            return;
+
+			}
+
+		}
+		
+        rxd1_buffer[Isr_com] = udr1;
         Isr_com++;
 
-        if (Isr_com >= 7)
+        if (Isr_com >= rec_data_num)
 		{
     		Isr_com = 0x00; 
     		Isr_j = 0x00; 
     		rxd1_buff_cFlag = 0x01;	
+			time_tick_cnt2 = 0;
         }
     }
-    
+
+	cnt_tmp = time_tick_cnt2;
 }
 
 
@@ -181,6 +214,8 @@ void serial_int1_send(void)	   //send data to USAR1
 	    counter_send = 0;
 		txd1_buff_cFlag = 1;
 		USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
+		
+		time_tick_cnt2 = 0;
         RS485_RX_ENABLE;
 	   }
     
@@ -189,40 +224,162 @@ void serial_int1_send(void)	   //send data to USAR1
 }
 
 
+
+
+
+#define FAULT_MOTOR_BIT    (0)
+#define FAULT_PHT_BIT    (1)
+#define FAULT_CLEAN_BIT    (2)
+#define FAULT_ESD_BIT    (3)
+#define FAULT_RUN_BIT    (4)
+#define FAULT_WIND_BIT    (5)
+
+
+
+
+void fault_set_bit(u8 fault_type,u8 val) 
+{
+    if(!val)
+        device_work_data.para_type.fault_state |= 1<<fault_type;
+    else
+        device_work_data.para_type.fault_state &= ~(1<<fault_type);
+    
+
+}
+
+u8 fault_get_bit(u8 fault_type,u8 val) 
+{
+    //device_work_data.para_type.fault_state |= 1<<fault_type;
+    
+	return (val & (1<<fault_type));
+}
+
+
+/*
+Ht1621_on_disp(8);    //T14 ÇåÏ´¹ÊÕÏ
+Ht1621_on_disp(9);    //T13 ¹âÇâ¹ÊÕÏ
+Ht1621_on_disp(10);  //T12 µç»ú¹ÊÕÏ
+Ht1621_on_disp(11);  //T11 ¾²µç¹ÊÕÏ
+Ht1621_on_disp(12);   //T10 ÔËÐÐ¹ÊÕÏ/ S5 ·çËÙ¸ß /S4 ·çËÙÖÐ/S3 ·çËÙµÍ
+
+
+
+*/
+void fault_check(void)
+{
+	u8 tmp;
+	
+	tmp = device_work_data.para_type.fault_state;
+
+	u8 tmp2=0;
+	for(u8 i=0;i<=5;i++)
+	{
+		if(fault_get_bit(i,tmp))
+		{
+			switch(i)
+			{
+			case FAULT_MOTOR_BIT:
+				case FAULT_WIND_BIT:
+				tmp = 1;
+				Ht1621_on_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_on_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_on_disp(8);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_ESD_BIT:
+				Ht1621_on_disp(11);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_on_disp(12);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+				
+			default:   //T13 ¹âÇâ¹ÊÕÏ
+				break;
+
+			}
+
+			
+			delay_ms(50);
+			Ht1621Display();  //PM2.5Î»ÖÃÏÔÊ¾	
+		}
+		else
+		{
+			switch(i)
+			{
+			case FAULT_MOTOR_BIT:
+			case FAULT_WIND_BIT:
+				if(tmp!=1)
+				Ht1621_off_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_off_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_off_disp(8);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_ESD_BIT:
+				Ht1621_off_disp(11);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_off_disp(12);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			default:
+				break;
+			}
+
+			
+		}
+
+	}
+}
+
 void cmd_uart_check(void)
 {
+	u8 rx_buff_tmp[50];
+
+	
     if(rxd1_buff_cFlag)
     {
         rxd1_buff_cFlag = 0;
 
-        if(rxd1_buffer[0] == 0xF1 && rxd1_buffer[1] == 0xf1)
+		for(u8 i=0;i<50;i++)
+			rx_buff_tmp[i] = rxd1_buffer[i];
+		
+        if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)
         {
-            if(rxd1_buffer[2] == 0x01)
+            if(rx_buff_tmp[2] == 0x01)
             {
                 return_current_device_state();
 
             }
         }
-        else if(rxd1_buffer[0] == 0xF2 && rxd1_buffer[1] == 0xf2)
+        else if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2)
         {
 
-            device_work_data.para_type.house1_co2 = (u16)rxd1_buffer[10]<<8+rxd1_buffer[11];
-			device_work_data.para_type.house1_pm2_5 = (u16)rxd1_buffer[12]<<8+rxd1_buffer[13];
+            device_work_data.para_type.house1_co2 = (u16)rx_buff_tmp[10]<<8+rx_buff_tmp[11];
+			device_work_data.para_type.house1_pm2_5 = (u16)rx_buff_tmp[12]<<8+rx_buff_tmp[13];
 
 
-            device_work_data.para_type.house2_co2 = (u16)rxd1_buffer[14]<<8+rxd1_buffer[15];
-			device_work_data.para_type.house2_pm2_5 = (u16)rxd1_buffer[16]<<8+rxd1_buffer[17];
+            device_work_data.para_type.house2_co2 = (u16)rx_buff_tmp[14]<<8+rx_buff_tmp[15];
+			device_work_data.para_type.house2_pm2_5 = (u16)rx_buff_tmp[16]<<8+rx_buff_tmp[17];
 
 
-            device_work_data.para_type.house3_co2 = (u16)rxd1_buffer[18]<<8+rxd1_buffer[19];
-			device_work_data.para_type.house3_pm2_5 = (u16)rxd1_buffer[20]<<8+rxd1_buffer[21];
+            device_work_data.para_type.house3_co2 = (u16)rx_buff_tmp[18]<<8+rx_buff_tmp[19];
+			device_work_data.para_type.house3_pm2_5 = (u16)rx_buff_tmp[20]<<8+rx_buff_tmp[21];
 
-            device_work_data.para_type.house4_co2 = (u16)rxd1_buffer[22]<<8+rxd1_buffer[23];
-			device_work_data.para_type.house4_pm2_5 = (u16)rxd1_buffer[24]<<8+rxd1_buffer[25];
+            device_work_data.para_type.house4_co2 = (u16)rx_buff_tmp[22]<<8+rx_buff_tmp[23];
+			device_work_data.para_type.house4_pm2_5 = (u16)rx_buff_tmp[24]<<8+rx_buff_tmp[25];
 
-            device_work_data.para_type.house5_co2 = (u16)rxd1_buffer[26]<<8+rxd1_buffer[27];
-			device_work_data.para_type.house5_pm2_5 = (u16)rxd1_buffer[28]<<8+rxd1_buffer[29];
+            device_work_data.para_type.house5_co2 = (u16)rx_buff_tmp[26]<<8+rx_buff_tmp[27];
+			device_work_data.para_type.house5_pm2_5 = (u16)rx_buff_tmp[28]<<8+rx_buff_tmp[29];
 
+			device_work_data.para_type.fault_state = rx_buff_tmp[30];
+
+			fault_check();
+			
      
         }
 
@@ -234,6 +391,8 @@ void cmd_uart_check(void)
 #define TICKS_PER_SECOND            1000
 u8 house_id = 1;
 
+
+
 int main(void)
 {
     u8 mybuff[10];
@@ -242,6 +401,7 @@ int main(void)
     HT1621_GPIO_Config ();
 
     SysTick_Config(SystemCoreClock / 1000);
+	//time2_init();
 
 
     /* Í¨ÓÃ¶¨Ê±Æ÷ TIMx,x[2,3,4,5] ¶¨Ê±ÅäÖÃ */	
@@ -260,6 +420,23 @@ int main(void)
     Ht1621_clrbuf(); 
     Ht1621_cls();  //ÇåÆÁ
     delay_ms(50);
+
+#if 1
+					Ht1621_on_disp(10);   //T13 ¹âÇâ¹ÊÕÏ
+
+					Ht1621_on_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+
+					Ht1621_on_disp(8);	  //T13 ¹âÇâ¹ÊÕÏ
+
+					Ht1621_on_disp(11);   //T13 ¹âÇâ¹ÊÕÏ
+
+					Ht1621_on_disp(12);   //T13 ¹âÇâ¹ÊÕÏ
+
+	
+				
+				Ht1621Display();  //PM2.5Î»ÖÃÏÔÊ¾
+
+#endif
 
 
     while(1)

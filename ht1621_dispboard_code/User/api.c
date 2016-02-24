@@ -178,6 +178,7 @@ void APP_USART2_IRQHandler(void)
 		{	
 			udr1Temp = USART_ReceiveData(USART2) & 0xFF;
 			serial_int1_receive(udr1Temp);
+			//USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		}
 	}
 	if(USART_GetITStatus(USART2, USART_IT_TXE) == SET) 
