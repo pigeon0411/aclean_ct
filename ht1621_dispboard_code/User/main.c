@@ -263,7 +263,11 @@ Ht1621_on_disp(11);  //T11 静电故障
 Ht1621_on_disp(12);   //T10 运行故障/ S5 风速高 /S4 风速中/S3 风速低
 
 
-
+Ht1621_on_disp(8);    //T14 清洗故障
+Ht1621_on_disp(9);    //T13 光氢故障
+Ht1621_on_disp(10);  //T12 电机故障
+Ht1621_on_disp(11);  //T11 静电故障
+Ht1621_on_disp(12);    //T10 运行故障
 */
 void fault_check(void)
 {
@@ -388,59 +392,39 @@ void cmd_uart_check(void)
 }
 
 
-#define TICKS_PER_SECOND            1000
+#define TICKS_PER_SECOND            700//1000
 u8 house_id = 1;
 
-
+extern volatile u8 Ht1621Tab3[];
 
 int main(void)
 {
     u8 mybuff[10];
 
-    /* HT1621 端口配置 */ 
-    HT1621_GPIO_Config ();
+	/* HT1621 端口配置 */ 
+	 HT1621_GPIO_Config ();
+    
 
-    SysTick_Config(SystemCoreClock / 1000);
-	//time2_init();
-
-
-    /* 通用定时器 TIMx,x[2,3,4,5] 定时配置 */	
-    TIMx_Configuration();
-
+	/* 通用定时器 TIMx,x[2,3,4,5] 定时配置 */	
+        TIMx_Configuration();
+	
 	/* 配置通用定时器 TIMx,x[2,3,4,5]的中断优先级 */
 	TIMx_NVIC_Configuration();
 
 	/* 通用定时器 TIMx,x[2,3,4,5] 重新开时钟，开始计时 */
 	macTIM_APBxClock_FUN (macTIM_CLK, ENABLE);
 	
+	HT1621_BL(OFF);
+	HT1621_LED(OFF);
+       Ht1621_clrbuf(); 
+       Ht1621_cls();  //清屏
+       delay_ms(50);
+
 	uart2_init();
 
-    
-	HT1621_BL(OFF);
-    Ht1621_clrbuf(); 
-    Ht1621_cls();  //清屏
-    delay_ms(50);
 
-#if 1
-					Ht1621_on_disp(10);   //T13 光氢故障
-
-					Ht1621_on_disp(9);	  //T13 光氢故障
-
-					Ht1621_on_disp(8);	  //T13 光氢故障
-
-					Ht1621_on_disp(11);   //T13 光氢故障
-
-					Ht1621_on_disp(12);   //T13 光氢故障
-
-	
-				
-				Ht1621Display();  //PM2.5位置显示
-
-#endif
-
-
-    while(1)
-    {
+  while(1)
+  {
 
         Key_Scan();   //按键扫描
         PollingKey();
@@ -454,7 +438,7 @@ int main(void)
             else
                 house_id++;
 
-            Ht1621_BUF[4]=house_id;  //房间号
+            Ht1621Tab3[4]=house_id;  //房间号
             
             switch(house_id)
             {
@@ -496,15 +480,15 @@ int main(void)
             }         
 
 
-            Ht1621_BUF[0]= mybuff[2]>>4;   //PM2.5 高位
-            Ht1621_BUF[1]= mybuff[2]&0x0f;  //PM2.5 
-            Ht1621_BUF[2]= mybuff[3]>>4;  //PM2.5 
-            Ht1621_BUF[3]= mybuff[3]&0x0f;  //PM2.5 低位
+            Ht1621Tab3[0]= mybuff[2]>>4;   //PM2.5 高位
+            Ht1621Tab3[1]= mybuff[2]&0x0f;  //PM2.5 
+            Ht1621Tab3[2]= mybuff[3]>>4;  //PM2.5 
+            Ht1621Tab3[3]= mybuff[3]&0x0f;  //PM2.5 低位
 
-            Ht1621_BUF[7]=mybuff[0]>>4;  // co2 低位
-            Ht1621_BUF[8]=mybuff[0]&0x0f;  //co2 
-            Ht1621_BUF[9]=mybuff[1]>>4;  //co2 
-            Ht1621_BUF[10]=mybuff[1]&0x0f;  //co2 高位
+            Ht1621Tab3[7]=mybuff[0]>>4;  // co2 低位
+            Ht1621Tab3[8]=mybuff[0]&0x0f;  //co2 
+            Ht1621Tab3[9]=mybuff[1]>>4;  //co2 
+            Ht1621Tab3[10]=mybuff[1]&0x0f;  //co2 高位
             
             time_tick_cnt = 0;
         }

@@ -6,7 +6,7 @@
 
 const u8 Ht1621Tab1[10]={0xfa,0x0a,0xbc,0x9e,0x4e,0xd6,0xf6,0x8a,0xfe,0xde}; //0123456789
 volatile u8 Ht1621Tab2[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-volatile  u8 Ht1621_BUF[]={0,0,0,0,0,0,0,0,0,0,0};
+volatile u8 Ht1621Tab3[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 u8 DIS_BUF[]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
 u8 Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};	
 volatile u8 count=0,count1=0,count2=0,count3=0,count4=0;  //计数
@@ -102,7 +102,7 @@ void HT1621_GPIO_Config (void)
 		GPIO_Init(HT1621_GPIOB_PORT, &GPIO_InitStructure);	
 
 
-	       GPIO_InitStructure.GPIO_Pin = HT1621_BL_GPIOC_PIN; 
+	       GPIO_InitStructure.GPIO_Pin = HT1621_BL_GPIOC_PIN|HT1621_LED_GPIOC_PIN; 
 
 		/*设置引脚模式为通用推挽输出*/
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;   
@@ -259,6 +259,7 @@ void Ht1621_cls(void) //清屏
 
 void Ht1621_clrbuf(void) 
 {
+
 Ht1621Tab2[0]=0x00;    //T5 co2/T4 PM2.5 /T2 光氢/T1 静电
 Ht1621Tab2[1]=0x00;    //T9 定时
 Ht1621Tab2[2]=0x00;    //T8 手动
@@ -281,26 +282,46 @@ Ht1621Tab2[16]=0x00;   //T1 静电
 Ht1621Tab2[17]=0x00;  //T11运行故障   01
 Ht1621Tab2[18]=0x00;  // S5 风速高 02 /S4 风速中 04 /S3 风速低  08
 
-Ht1621_BUF[0]=0;   //PM2.5 高位
-Ht1621_BUF[1]=0;  //PM2.5 
-Ht1621_BUF[2]=0;  //PM2.5 
-Ht1621_BUF[3]=0;  //PM2.5 低位
-Ht1621_BUF[4]=0;  //房间号
-Ht1621_BUF[5]=0;  // 定时时间高位
-Ht1621_BUF[6]=0;  //定时时间低位
-Ht1621_BUF[7]=0;  // co2 低位
-Ht1621_BUF[8]=0;  //co2 
-Ht1621_BUF[9]=0;  //co2 
-Ht1621_BUF[10]=0;  //co2 高位
-
+Ht1621Tab3[0]=0;   //PM2.5 高位
+Ht1621Tab3[1]=0;  //PM2.5 
+Ht1621Tab3[2]=0;  //PM2.5 
+Ht1621Tab3[3]=0;  //PM2.5 低位
+Ht1621Tab3[4]=0;  //房间号
+Ht1621Tab3[5]=0;  // 定时时间高位
+Ht1621Tab3[6]=0;  //定时时间低位
+Ht1621Tab3[7]=0;  // co2 低位
+Ht1621Tab3[8]=0;  //co2 
+Ht1621Tab3[9]=0;  //co2 
+Ht1621Tab3[10]=0;  //co2 高位
 
 }
 
+/*
+Ht1621_off_disp(0);   //T5 co2/T4 PM2.5 /T2 光氢/T1 静电
+Ht1621_off_disp(1);    //T9 定时
+Ht1621_off_disp(2);   //T8 手动
+Ht1621_off_disp(3);    //T7 智能
+Ht1621_off_disp(4);   //T6 ug/m3/ppm
+Ht1621_off_disp(5);    //T3 关机
+Ht1621_off_disp(6);   //S2 定时H图标
+Ht1621_off_disp(7);   //S1 定时S1O图标
+Ht1621_off_disp(8);    //T14 清洗故障
+Ht1621_off_disp(9);    //T13 光氢故障
+Ht1621_off_disp(10);  //T12 电机故障
+Ht1621_off_disp(11);  //T11 静电故障
+Ht1621_off_disp(12);    //T10 运行故障
+Ht1621_off_disp(13);    //S3 风速低  
+Ht1621_off_disp(14);   //S3 风速中 
+Ht1621_off_disp(15);    //S3 风速高
+Ht1621_off_disp(16);    //T1 静电 
+Ht1621_off_disp(17);   //T2 光氢 
+Ht1621_off_disp(18);   //T4 PM2.5 
+Ht1621_off_disp(19);   //T5 co2
+
+*/
 
 void Ht1621_off_disp(u8 f)  //关闭显示
 {
-   if(f==0)
-   Ht1621Tab2[0]&=~0x01;
 
   if(f==1)
    Ht1621Tab2[1]&=~0x01;
@@ -335,15 +356,46 @@ void Ht1621_off_disp(u8 f)  //关闭显示
   if(f==11)
    Ht1621Tab2[11]&=~0x01;
 
-  if(f==12)
-   Ht1621Tab2[12]&=~0x01;
+  if(f==12)                           //T10 运行故障
+   Ht1621Tab2[17]&=~0x01;	
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+   
+   if(f==13)                        //S3 风速低    
+   Ht1621Tab2[18]&=~0x08;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+   if(f==14)                        //S3 风速中     
+   Ht1621Tab2[18]&=~0x04;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+
+   if(f==15)                        //S3 风速高    
+   Ht1621Tab2[18]&=~0x02;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+
+   if(f==16)                       //T1 静电  
+   Ht1621Tab2[16]&=~0x08;   
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+   if(f==17)                            //T2 光氢  
+   Ht1621Tab2[15]&=~0x04;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+   if(f==18)                            //T4 PM2.5     
+   Ht1621Tab2[14]&=~0x02;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+
+   if(f==19)                            //T5 co2
+   Ht1621Tab2[13]&=~0x01;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
 }
 
 
 void Ht1621_on_disp(u8 f)  //开启显示
  {
-   if(f==0)
-   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
 
   if(f==1)
    Ht1621Tab2[1]=0x01;
@@ -378,12 +430,46 @@ void Ht1621_on_disp(u8 f)  //开启显示
   if(f==11)
    Ht1621Tab2[11]=0x01;
 
-  if(f==12)
+  if(f==12)                           //T10 运行故障
+   Ht1621Tab2[17]=0x01;	
    Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+   
+   if(f==13)                        //S3 风速低    
+   Ht1621Tab2[18]=0x08;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+   if(f==14)                        //S3 风速中     
+   Ht1621Tab2[18]=0x04;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+
+   if(f==15)                        //S3 风速高    
+   Ht1621Tab2[18]=0x02;  
+   Ht1621Tab2[12]=Ht1621Tab2[18]|Ht1621Tab2[17];
+
+
+   if(f==16)                       //T1 静电  
+   Ht1621Tab2[16]=0x08;   
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+   if(f==17)                            //T2 光氢  
+   Ht1621Tab2[15]=0x04;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+   if(f==18)                            //T4 PM2.5     
+   Ht1621Tab2[14]=0x02;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+
+   if(f==19)                            //T5 co2
+   Ht1621Tab2[13]=0x01;  
+   Ht1621Tab2[0]=Ht1621Tab2[13]|Ht1621Tab2[14]|Ht1621Tab2[15]|Ht1621Tab2[16];
+
+
+  
 }
 
 /*
-Ht1621_on_disp(0);   //T5 co2/T4 PM2.5 /T2 光氢/T1 静电
 Ht1621_on_disp(1);    //T9 定时
 Ht1621_on_disp(2);   //T8 手动
 Ht1621_on_disp(3);    //T7 智能
@@ -395,7 +481,14 @@ Ht1621_on_disp(8);    //T14 清洗故障
 Ht1621_on_disp(9);    //T13 光氢故障
 Ht1621_on_disp(10);  //T12 电机故障
 Ht1621_on_disp(11);  //T11 静电故障
-Ht1621_on_disp(12);   //T10 运行故障/ S5 风速高 /S4 风速中/S3 风速低
+Ht1621_on_disp(12);    //T10 运行故障
+Ht1621_on_disp(13);    //S3 风速低  
+Ht1621_on_disp(14);   //S3 风速中 
+Ht1621_on_disp(15);    //S3 风速高
+Ht1621_on_disp(16);    //T1 静电 
+Ht1621_on_disp(17);   //T2 光氢 
+Ht1621_on_disp(18);   //T4 PM2.5 
+Ht1621_on_disp(19);   //T5 co2
 
 */
 
@@ -412,40 +505,35 @@ void Key_Scan(void)   //按键扫描
        while(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_9) == KEY_OFF ) ;   
 	   time = 0;
       } 
-
-
-
 	if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF ) &&(key3==ON))//静电
       {
        delay_ms(10);  //---延时10ms
 	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF )  
       
-	  if((key4 ==0))
+	  if(key4==0)
 	  {
 	    count2++;
-	     
-	   if((count3==1)&&(count2>=3))
-	   {
-	   count2=2;
-          count3=1;
-	   }	   
-	   
+	      
 	   if(count2==10)
 	   {
           count2=0;
           count3=1;
 	    }   
-          Ht1621_BUF[5]=count3;  // 定时时间高位
-           Ht1621_BUF[6]=count2;  //定时时间低位
-	  }
-         else if((count1==1))
+	   
+	   if((count3==1)&&(count2>=3))
 	   {
-            return;
-	   }	 
+	    count2=2;
+           count3=1;
+	   }	 	   
+          Ht1621Tab3[5]=count3;  // 定时时间高位
+           Ht1621Tab3[6]=count2;  //定时时间低位
+	  }
+	  
 	  else
 	  {
          key1 = ~key1;
 	  }
+	  
        while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF );     
 	   time = 0;
      }    
@@ -458,23 +546,24 @@ void Key_Scan(void)   //按键扫描
 	 	
 	 if(key4 ==0)
 	  {
-	  if(count2 !=0)
-	     count2--;	
-	 else
-           count2 =0;
-	 
-          Ht1621_BUF[5]=count3;  // 定时时间高位
-          Ht1621_BUF[6]=count2;  //定时时间低位
-         if((count3==1)&&(count2 ==0))
+	       if((count3==1)&&(count2 ==0))
             	{
             	count3=0;
 		count2=10;
             	}
-	  }
-        else if((count1==1))
-	   {
-           return;
-	   }	 
+		   
+	     if((count2!=0)&&(count2 > 0))
+	  	{
+	        count2--;	
+	  	}
+	    else
+	 	{
+               count2 =0;
+	 	}   
+		
+           Ht1621Tab3[5]=count3;  // 定时时间高位
+          Ht1621Tab3[6]=count2;  //定时时间低位
+	  }	
 	  else
 	  {
          key2 = ~key2;
@@ -490,7 +579,7 @@ void Key_Scan(void)   //按键扫描
        delay_ms(10); //---延时10ms
        if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF )
 	   	
-	  if(key4 !=0)
+	  if(key4!=0)
 	   {
 	    if(count1==1) 
 	    {
@@ -651,8 +740,8 @@ void onoff_Scan(void) //开关
      {
      	 HT1621_BL(OFF);
         Ht1621_cls();  //清屏
-        Ht1621_BUF[5]=count3;  // 定时时间高位
-        Ht1621_BUF[6]=count2;  //定时时间低位
+        Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
         count3=0;
 	 count2=0;
      }
@@ -661,9 +750,10 @@ void onoff_Scan(void) //开关
 
 void pin0_Scan(void)  //PM2.5 CO2
 {
-Ht1621Tab2[14]=0x02;  //T4 PM2.5  02
-Ht1621Tab2[13]=0x01;  //T5 co2    01
-Ht1621_on_disp(0); 
+
+Ht1621_on_disp(18);   //T4 PM2.5 
+Ht1621_on_disp(19);   //T5 co2
+
 }
 
 void pin1_Scan(void)   //ug/m3  ppm
@@ -676,68 +766,65 @@ void pin2_Scan(void)  //静电开关
 {
      if(key1==ON)
       {
-       Ht1621Tab2[16]=0x08;   //T1 静电  08
-       device_work_data.para_type.high_pressur_state = 1;
+      Ht1621_on_disp(16);    //T1 静电 
+             device_work_data.para_type.high_pressur_state = 1;
+
       }
      else if(count1==ON)
       {
-       Ht1621Tab2[16]=0x08;   //T1 静电  08
-              device_work_data.para_type.high_pressur_state = 1;
+      Ht1621_on_disp(16);    //T1 静电 
+             device_work_data.para_type.high_pressur_state = 1;
 
 	}  
     else
-    {
-        Ht1621Tab2[16]&=~0x08;   //T1 静电  08
+     {
+        Ht1621_off_disp(16);    //T1 静电
         device_work_data.para_type.high_pressur_state = 0;
-
-    }
-    Ht1621_on_disp(0); 
+      }
 }
 
 void pin3_Scan(void)  //光氢开关
 {
         if(key2==ON)
         {
-        device_work_data.para_type.pht_work_state = 1;
-        Ht1621Tab2[15]=0x04;  //T2 光氢   04
+        Ht1621_on_disp(17);   //T2 光氢 
+                device_work_data.para_type.pht_work_state = 1;
+
         }
 	else if(count1==1)
 	 {
-	 device_work_data.para_type.pht_work_state = 1;
-         Ht1621Tab2[15]=0x04;  //T2 光氢   04
+	 Ht1621_on_disp(17);   //T2 光氢 
+	         device_work_data.para_type.pht_work_state = 1;
+
 	 }
         else
         {
+        Ht1621_off_disp(17);    //T2 光氢
+                device_work_data.para_type.pht_work_state = 0;
 
-        device_work_data.para_type.pht_work_state = 0;
-        Ht1621Tab2[15]&=~0x04;  //T2 光氢   04
         }
-    Ht1621_on_disp(0); 
 }
 
 void pin4_Scan(void) //风速
 {
         if(count==0)
         {
-        Ht1621Tab2[18]=0x08;  //S3 风速低     08
-
+        Ht1621_on_disp(13);    //S3 风速低  
         device_work_data.para_type.wind_speed_state = 1;
         }
 			
         if(count==1)
         {
-        Ht1621Tab2[18]=0x04;  //S4 风速中     04
-        device_work_data.para_type.wind_speed_state = 2;
+        Ht1621_on_disp(14);   //S3 风速中
+        device_work_data.para_type.wind_speed_state = 1;
         }
 		
         if(count==2)
         { 
-        Ht1621Tab2[18]=0x02;  //S5 风速高     02
-        device_work_data.para_type.wind_speed_state = 3;
-        
+        Ht1621_on_disp(15);    //S3 风速高
+        device_work_data.para_type.wind_speed_state = 0;
         }
 		
-     Ht1621_on_disp(12); 
 }
 void pin5_Scan(void) //智能/手动/定时
 
@@ -762,6 +849,7 @@ void pin5_Scan(void) //智能/手动/定时
         Ht1621_off_disp(2);    //T8 关手动
 	  Ht1621_off_disp(3);   //T7  关智能
         Ht1621_on_disp(1);    //T9 开定时
+        device_work_data.para_type.device_mode = 2;
         }
 
 }
@@ -801,21 +889,24 @@ void Ht1621_BL(void) //背光
     if ( time>= 1000 )  //1000  1 ms = 1s 时间到 
     {
      HT1621_BL(OFF);
+     HT1621_LED(OFF);
     }  
-    else if (time >= 1000)//防止加满溢出
-    {
-     time = 1000;
-    }
     else
     {
      HT1621_BL(ON);
+     HT1621_LED(ON);
+    }
+	
+     if (time >= 1000)//防止加满溢出
+    {
+     time = 1000;
     }
 }
 
 void Ht1621Display(void)  //显示
 {
      Ht1621_on_disp(6);   //S2 定时H图标
-     Ht1621DisplayState(DIS_BUF,Ht1621_BUF,0,12);     //位置显示
+     Ht1621DisplayState(DIS_BUF,Ht1621Tab3,0,12);     //位置显示
 }
 
 /*********************************************END OF FILE**********************/

@@ -26,7 +26,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "bsp_TiMbase.h"
-#include "api.h"
+
 
 extern volatile u32 time;
 
@@ -139,19 +139,12 @@ void PendSV_Handler(void)
   * @param  None
   * @retval None
   */
-
 u32 time_tick_cnt = 0;
 u32 time_tick_cnt2=0;
 void SysTick_Handler(void)
 {
-    if(time_tick_cnt<0xFFFFFFFF)
-        time_tick_cnt++;
-    
-    
-	if(time_tick_cnt2<0xFFFFFFFF)
-		time_tick_cnt2++;
-}
 
+}
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
@@ -170,6 +163,15 @@ void  macTIM_INT_FUN (void)
 	if ( TIM_GetITStatus( macTIMx, TIM_IT_Update) != RESET ) 
 	{	
 		time++;
+
+            if(time_tick_cnt<0xFFFFFFFF)
+        time_tick_cnt++;
+    
+    
+	if(time_tick_cnt2<0xFFFFFFFF)
+		time_tick_cnt2++;
+
+    
 		TIM_ClearITPendingBit(macTIMx , TIM_FLAG_Update);  		 
 	}		 	
 }
@@ -186,9 +188,6 @@ void  macTIM_INT_FUN (void)
 /**
   * @}
   */ 
-
-
-
 
 /*******************************************************************************
 * Function Name  : USART1_IRQHandler
@@ -213,6 +212,5 @@ void USART2_IRQHandler(void)
 {
 	APP_USART2_IRQHandler();
 }
-
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

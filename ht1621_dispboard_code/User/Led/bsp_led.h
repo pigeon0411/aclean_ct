@@ -3,8 +3,6 @@
 
 #include "stm32f10x.h"
 
-
-
 #ifndef DEVICE_WORK_TYPE_MACRO
 #define DEVICE_WORK_TYPE_MACRO
 
@@ -40,6 +38,7 @@ typedef union __DEVICE_WORK_TYPE {
 
 extern DEVICE_WORK_TYPE device_work_data;
 
+
 //#ifndef __HT1621_H
 
 /* 定义HT1621连接的GPIO端口, 用户只需要修改下面的代码即可改变控制的HT1621引脚 */
@@ -59,6 +58,8 @@ extern DEVICE_WORK_TYPE device_work_data;
 #define HT1621_GPIOC_CLK 	    RCC_APB2Periph_GPIOC               /* GPIOC端口时钟 */
 
 #define HT1621_BL_GPIOC_PIN		  GPIO_Pin_1		             /* 背光GPIO  */
+
+#define HT1621_LED_GPIOC_PIN		  GPIO_Pin_0                    /* 按键LED GPIO  */
 
 #define HT1621_KEY1_GPIOC_PIN		  GPIO_Pin_7                     /* 智能/定时GPIO */
 #define HT1621_KEY2_GPIOC_PIN		  GPIO_Pin_8                     /*光氢 GPIO */
@@ -99,6 +100,12 @@ extern DEVICE_WORK_TYPE device_work_data;
 					             GPIO_SetBits(HT1621_GPIOC_PORT,HT1621_BL_GPIOC_PIN);\
 					            else		\
 					            GPIO_ResetBits(HT1621_GPIOC_PORT,HT1621_BL_GPIOC_PIN)
+
+
+#define HT1621_LED(a)             if (a)	\
+					             GPIO_ResetBits(HT1621_GPIOC_PORT,HT1621_LED_GPIOC_PIN);\
+					            else		\
+					            GPIO_SetBits(HT1621_GPIOC_PORT,HT1621_LED_GPIOC_PIN)
 
 
 #define  KeyPin  (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_7))

@@ -32,6 +32,13 @@
   * @{
   */ 
 
+/** @defgroup DAC_Private_TypesDefinitions
+  * @{
+  */
+
+/**
+  * @}
+  */
 
 /** @defgroup DAC_Private_Defines
   * @{

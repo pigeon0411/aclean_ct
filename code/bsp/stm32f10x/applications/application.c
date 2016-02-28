@@ -265,10 +265,10 @@ void thread_entry_SysMonitor(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND*3);
+		rt_thread_delay(RT_TICK_PER_SECOND/2);
         
         set_display_board_data(); //100ms
-#if 0
+#if 1
 		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
         
