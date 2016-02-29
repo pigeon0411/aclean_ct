@@ -5,6 +5,7 @@
 #include "bsp_TiMbase.h"
 #include "api.h"
 
+u8 in_com_buff[40];
 
 u8 rxd1_buffer[40];
 u8 counter_receive;
@@ -115,7 +116,6 @@ void uart2_init(void)
 
 
 
-u8 Isr_i=0;
 u8 Isr_j=0;
 u8 Isr_com = 0;
 
@@ -128,15 +128,16 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
 
 	static u32 cnt_tmp=0;
 
-	if(time_tick_cnt2 > cnt_tmp)
-		{
-			
-		if(time_tick_cnt2-cnt_tmp > 800)
-			{
-			Isr_j = 0;
-			return;
-		}
-	}
+	
+//	if(time_tick_cnt2 > cnt_tmp)
+//		{
+//			
+//		if(time_tick_cnt2-cnt_tmp > 800)
+//			{
+//			Isr_j = 0;
+//			return;
+//		}
+//	}
 
 	
     if (0x00 == Isr_j) 
@@ -148,7 +149,7 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
             return;
         }
 
-        if(0xF1 ==Isr_i)
+        if(0xF1 ==udr1)
             rec_data_num = 7;
         else
             rec_data_num = 33;
@@ -189,6 +190,15 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
     		Isr_j = 0x00; 
     		rxd1_buff_cFlag = 0x01;	
 			time_tick_cnt2 = 0;
+
+			for(u8 i=0;i<rec_data_num;i++)
+				{
+				in_com_buff[i] = rxd1_buffer[i];
+
+				rxd1_buffer[i] = 0;
+			}
+
+			
         }
     }
 
@@ -233,6 +243,7 @@ void serial_int1_send(void)	   //send data to USAR1
 #define FAULT_ESD_BIT    (3)
 #define FAULT_RUN_BIT    (4)
 #define FAULT_WIND_BIT    (5)
+#define FAULT_RESET_WIFI_BIT    (6)
 
 
 
@@ -276,7 +287,13 @@ void fault_check(void)
 	tmp = device_work_data.para_type.fault_state;
 
 	u8 tmp2=0;
-	for(u8 i=0;i<=5;i++)
+
+	u8 motortmp = fault_get_bit(0,tmp);
+
+	if(motortmp)
+		Ht1621_on_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+		
+	for(u8 i=1;i<=5;i++)
 	{
 		if(fault_get_bit(i,tmp))
 		{
@@ -315,8 +332,12 @@ void fault_check(void)
 			{
 			case FAULT_MOTOR_BIT:
 			case FAULT_WIND_BIT:
-				if(tmp!=1)
-				Ht1621_off_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+				if(!motortmp)
+				{
+					if(tmp!=1)
+					Ht1621_off_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+
+				}
 				break;
 			case FAULT_PHT_BIT:
 				Ht1621_off_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
@@ -342,16 +363,20 @@ void fault_check(void)
 
 void cmd_uart_check(void)
 {
-	u8 rx_buff_tmp[50];
+	u8 rx_buff_tmp[40];
 
 	
     if(rxd1_buff_cFlag)
     {
         rxd1_buff_cFlag = 0;
 
-		for(u8 i=0;i<50;i++)
-			rx_buff_tmp[i] = rxd1_buffer[i];
+		for(u8 i=0;i<40;i++)
+			rx_buff_tmp[i] = in_com_buff[i];
+
 		
+		for(u8 i=0;i<40;i++)
+			in_com_buff[i] = 0;
+
         if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)
         {
             if(rx_buff_tmp[2] == 0x01)
@@ -363,22 +388,41 @@ void cmd_uart_check(void)
         else if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2)
         {
 
-            device_work_data.para_type.house1_co2 = (u16)rx_buff_tmp[10]<<8+rx_buff_tmp[11];
-			device_work_data.para_type.house1_pm2_5 = (u16)rx_buff_tmp[12]<<8+rx_buff_tmp[13];
+            device_work_data.para_type.house1_co2 = (u16)rx_buff_tmp[12]<<8;
+			device_work_data.para_type.house1_co2 += (u16)rx_buff_tmp[13];
+			
+			device_work_data.para_type.house1_pm2_5 = (u16)rx_buff_tmp[10]<<8;
+			device_work_data.para_type.house1_pm2_5 +=(u16)rx_buff_tmp[11];
 
 
-            device_work_data.para_type.house2_co2 = (u16)rx_buff_tmp[14]<<8+rx_buff_tmp[15];
-			device_work_data.para_type.house2_pm2_5 = (u16)rx_buff_tmp[16]<<8+rx_buff_tmp[17];
+            device_work_data.para_type.house2_co2 = (u16)rx_buff_tmp[16]<<8;
+			device_work_data.para_type.house2_co2	+= (u16)rx_buff_tmp[17];
+			
+			device_work_data.para_type.house2_pm2_5 = (u16)rx_buff_tmp[14]<<8;
+			device_work_data.para_type.house2_pm2_5	+= (u16)rx_buff_tmp[15];
 
 
-            device_work_data.para_type.house3_co2 = (u16)rx_buff_tmp[18]<<8+rx_buff_tmp[19];
-			device_work_data.para_type.house3_pm2_5 = (u16)rx_buff_tmp[20]<<8+rx_buff_tmp[21];
+            device_work_data.para_type.house3_co2 = (u16)rx_buff_tmp[20]<<8;
+			device_work_data.para_type.house3_co2	+=(u16)rx_buff_tmp[21];
+			
+			device_work_data.para_type.house3_pm2_5 = (u16)rx_buff_tmp[18]<<8;
+			device_work_data.para_type.house3_pm2_5+= (u16)rx_buff_tmp[19];
 
-            device_work_data.para_type.house4_co2 = (u16)rx_buff_tmp[22]<<8+rx_buff_tmp[23];
-			device_work_data.para_type.house4_pm2_5 = (u16)rx_buff_tmp[24]<<8+rx_buff_tmp[25];
+			
 
-            device_work_data.para_type.house5_co2 = (u16)rx_buff_tmp[26]<<8+rx_buff_tmp[27];
-			device_work_data.para_type.house5_pm2_5 = (u16)rx_buff_tmp[28]<<8+rx_buff_tmp[29];
+            device_work_data.para_type.house4_co2 = (u16)rx_buff_tmp[24]<<8;
+			device_work_data.para_type.house4_co2+=(u16)rx_buff_tmp[25];
+			
+			device_work_data.para_type.house4_pm2_5 = (u16)rx_buff_tmp[22]<<8;
+			device_work_data.para_type.house4_pm2_5+=(u16)rx_buff_tmp[23];
+
+			
+
+            device_work_data.para_type.house5_co2 = (u16)rx_buff_tmp[28]<<8;
+			device_work_data.para_type.house5_co2+=(u16)rx_buff_tmp[29];
+			
+			device_work_data.para_type.house5_pm2_5 = (u16)rx_buff_tmp[26]<<8;
+			device_work_data.para_type.house5_pm2_5+=(u16)rx_buff_tmp[27];
 
 			device_work_data.para_type.fault_state = rx_buff_tmp[30];
 
@@ -392,10 +436,26 @@ void cmd_uart_check(void)
 }
 
 
-#define TICKS_PER_SECOND            700//1000
-u8 house_id = 1;
+#define TICKS_PER_SECOND            1000//7000
+u8 house_id = 0;
 
 extern volatile u8 Ht1621Tab3[];
+
+
+
+
+//¸´Î»WIFI
+void reset_wifi(void)
+{
+
+
+	fault_set_bit(FAULT_RESET_WIFI_BIT,1);
+
+	
+
+}
+
+
 
 int main(void)
 {
@@ -423,6 +483,32 @@ int main(void)
 	uart2_init();
 
 
+#if 0	
+	Ht1621_on_disp(8);	  //T14 ÇåÏ´¹ÊÕÏ
+	Ht1621_on_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+	Ht1621_on_disp(10);  //T12 µç»ú¹ÊÕÏ
+	Ht1621_on_disp(11);  //T11 ¾²µç¹ÊÕÏ
+	Ht1621_on_disp(12);    //T10 ÔËÐÐ¹ÊÕÏ
+	Ht1621Display();  //PM2.5Î»ÖÃÏÔÊ¾	
+#endif	
+
+
+
+//
+//							Ht1621Tab3[0]= 12;   //PM2.5 ¸ßÎ»
+//					Ht1621Tab3[1]= 8;	//PM2.5 
+//					Ht1621Tab3[2]= 7;  //PM2.5 
+//					Ht1621Tab3[3]= 6;	//PM2.5 µÍÎ»
+//
+//					Ht1621Tab3[7]=3;  // co2 µÍÎ»
+//					Ht1621Tab3[8]=2;  //co2 
+//					Ht1621Tab3[9]=1;  //co2 
+//					Ht1621Tab3[10]=5;	//co2 ¸ßÎ
+//
+
+
+	time_tick_cnt = TICKS_PER_SECOND;
+
   while(1)
   {
 
@@ -433,62 +519,85 @@ int main(void)
 
         if(time_tick_cnt> TICKS_PER_SECOND )
         {
-            if(house_id >= 5)
-                house_id = 1;
-            else
-                house_id++;
 
-            Ht1621Tab3[4]=house_id;  //·¿¼äºÅ
-            
-            switch(house_id)
-            {
-            case 1:
-                
-                mybuff[0] = device_work_data.para_type.house1_pm2_5>>8;
-                mybuff[1] = device_work_data.para_type.house1_pm2_5&0xff;
-                mybuff[2] = device_work_data.para_type.house1_co2>>8;
-                mybuff[3] = device_work_data.para_type.house1_co2&0xff;
+			for(u8 kk=0;kk<5;kk++)
+			{
+	            if(house_id >= 5)
+	                house_id = 1;
+	            else
+	                house_id++;
+
+	            Ht1621Tab3[4]=house_id;  //·¿¼äºÅ
+
 				
-                break;
-            case 2:
-                mybuff[0] = device_work_data.para_type.house2_pm2_5>>8;
-                mybuff[1] = device_work_data.para_type.house2_pm2_5&0xff;
-                mybuff[2] = device_work_data.para_type.house2_co2>>8;
-                mybuff[3] = device_work_data.para_type.house2_co2&0xff;
-                break;
-            case 3:
-                mybuff[0] = device_work_data.para_type.house3_pm2_5>>8;
-                mybuff[1] = device_work_data.para_type.house3_pm2_5&0xff;
-                mybuff[2] = device_work_data.para_type.house3_co2>>8;
-                mybuff[3] = device_work_data.para_type.house3_co2&0xff;
-                break;
-            case 4:
-                mybuff[0] = device_work_data.para_type.house4_pm2_5>>8;
-                mybuff[1] = device_work_data.para_type.house4_pm2_5&0xff;
-                mybuff[2] = device_work_data.para_type.house4_co2>>8;
-                mybuff[3] = device_work_data.para_type.house4_co2&0xff;
-                break;
-            case 5:
-                mybuff[0] = device_work_data.para_type.house5_pm2_5>>8;
-                mybuff[1] = device_work_data.para_type.house5_pm2_5&0xff;
-                mybuff[2] = device_work_data.para_type.house5_co2>>8;
-                mybuff[3] = device_work_data.para_type.house5_co2&0xff;
-                break;
+	            switch(house_id)
+	            {
+	            case 1:
+	                
+	                mybuff[0] = device_work_data.para_type.house1_pm2_5>>8;
+	                mybuff[1] = device_work_data.para_type.house1_pm2_5&0xff;
+	                mybuff[2] = device_work_data.para_type.house1_co2>>8;
+	                mybuff[3] = device_work_data.para_type.house1_co2&0xff;
+					
+	                break;
+	            case 2:
+	                mybuff[0] = device_work_data.para_type.house2_pm2_5>>8;
+	                mybuff[1] = device_work_data.para_type.house2_pm2_5&0xff;
+	                mybuff[2] = device_work_data.para_type.house2_co2>>8;
+	                mybuff[3] = device_work_data.para_type.house2_co2&0xff;
+	                break;
+	            case 3:
+	                mybuff[0] = device_work_data.para_type.house3_pm2_5>>8;
+	                mybuff[1] = device_work_data.para_type.house3_pm2_5&0xff;
+	                mybuff[2] = device_work_data.para_type.house3_co2>>8;
+	                mybuff[3] = device_work_data.para_type.house3_co2&0xff;
+	                break;
+	            case 4:
+	                mybuff[0] = device_work_data.para_type.house4_pm2_5>>8;
+	                mybuff[1] = device_work_data.para_type.house4_pm2_5&0xff;
+	                mybuff[2] = device_work_data.para_type.house4_co2>>8;
+	                mybuff[3] = device_work_data.para_type.house4_co2&0xff;
+	                break;
+	            case 5:
+	                mybuff[0] = device_work_data.para_type.house5_pm2_5>>8;
+	                mybuff[1] = device_work_data.para_type.house5_pm2_5&0xff;
+	                mybuff[2] = device_work_data.para_type.house5_co2>>8;
+	                mybuff[3] = device_work_data.para_type.house5_co2&0xff;
+	                break;
 
-            default:
-                break;
-            }         
+	            default:
+	                break;
+	            }         
+
+				if(mybuff[0]==0&&mybuff[1]==0&&mybuff[2]==0&&mybuff[3]==0)
+				{
+					continue;
+				}
+				else
+				{
 
 
-            Ht1621Tab3[0]= mybuff[2]>>4;   //PM2.5 ¸ßÎ»
-            Ht1621Tab3[1]= mybuff[2]&0x0f;  //PM2.5 
-            Ht1621Tab3[2]= mybuff[3]>>4;  //PM2.5 
-            Ht1621Tab3[3]= mybuff[3]&0x0f;  //PM2.5 µÍÎ»
+					u16 tmp;
 
-            Ht1621Tab3[7]=mybuff[0]>>4;  // co2 µÍÎ»
-            Ht1621Tab3[8]=mybuff[0]&0x0f;  //co2 
-            Ht1621Tab3[9]=mybuff[1]>>4;  //co2 
-            Ht1621Tab3[10]=mybuff[1]&0x0f;  //co2 ¸ßÎ»
+					tmp = (u16)mybuff[0]<<8;
+					tmp += (u16)mybuff[1];
+					
+				    Ht1621Tab3[0]= tmp/1000;   //PM2.5 ¸ßÎ»
+		            Ht1621Tab3[1]= tmp%1000/100;  //PM2.5 
+		            Ht1621Tab3[2]= tmp%1000%100/10;  //PM2.5 
+		            Ht1621Tab3[3]= tmp%1000%100%10;  //PM2.5 µÍÎ»
+
+					tmp = (u16)mybuff[2]<<8;
+					tmp += (u16)mybuff[3];
+				    Ht1621Tab3[10]= tmp/1000;   //PM2.5 ¸ßÎ»
+		            Ht1621Tab3[9]= tmp%1000/100;  //PM2.5 
+		            Ht1621Tab3[8]= tmp%1000%100/10;  //PM2.5 
+		            Ht1621Tab3[7]= tmp%1000%100%10;  //PM2.5 µÍÎ»
+					break;
+				}
+
+			}
+
             
             time_tick_cnt = 0;
         }

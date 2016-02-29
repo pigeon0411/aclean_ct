@@ -734,7 +734,9 @@ void onoff_Scan(void) //开关
      pin5_Scan();  //智能/手动/定时
      pin6_Scan(); //智能/手动/定时
      Ht1621_BL();  //背光
-     Ht1621Display();  //PM2.5位置显示   
+     Ht1621Display();  //PM2.5位置显示  
+
+	 device_work_data.para_type.device_power_state = 1;
      }
      else
      {
@@ -744,6 +746,8 @@ void onoff_Scan(void) //开关
         Ht1621Tab3[6]=count2;  //定时时间低位
         count3=0;
 	 count2=0;
+
+	 device_work_data.para_type.device_power_state = 0;
      }
 
 }
@@ -816,13 +820,13 @@ void pin4_Scan(void) //风速
         if(count==1)
         {
         Ht1621_on_disp(14);   //S3 风速中
-        device_work_data.para_type.wind_speed_state = 1;
+        device_work_data.para_type.wind_speed_state = 2;
         }
 		
         if(count==2)
         { 
         Ht1621_on_disp(15);    //S3 风速高
-        device_work_data.para_type.wind_speed_state = 0;
+        device_work_data.para_type.wind_speed_state = 3;
         }
 		
 }
