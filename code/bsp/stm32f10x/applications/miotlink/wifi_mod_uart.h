@@ -42,6 +42,7 @@ typedef union __DEVICE_WORK_TYPE {
 #define FAULT_ESD_BIT    (3)
 #define FAULT_RUN_BIT    (4)
 #define FAULT_WIND_BIT    (5)
+#define FAULT_RESET_WIFI_BIT    (6)
 
 
 
@@ -59,6 +60,6 @@ struct _uart_dev_my
 
 
 extern 	void wifi_factory_set(void);
-
+extern u8 device_power_state_pre;
 
 

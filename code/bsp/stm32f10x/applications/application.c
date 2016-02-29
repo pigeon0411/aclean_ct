@@ -44,7 +44,7 @@
 #include "rs485_decode.h"
 #include "app_task.h"
 #include "rtdevice.h"
-
+#include "application.h"
 
 
 extern void fault_set_bit(u8 fault_type,u8 val) ;
@@ -247,6 +247,81 @@ void set_display_board_data(void)
 }
 
 
+FLASH_Status FLASH_Program_save_para(void)
+{
+    FLASH_Status revl;
+
+	u16 i;
+	u32 addr_temp;
+	u32 Address = SYS_PARA_ADDR;
+	u32 data;
+	
+    FLASH_Unlock();
+
+
+	FLASH_ClearFlag(FLASH_FLAG_PGERR);
+
+
+	FLASH_ErasePage(SYS_PARA_ADDR);
+
+
+	FLASH_ProgramWord(SYS_PARA_ADDR-1,0x86123456);
+	
+	for(i=0;i<20;)
+	{
+		addr_temp = i + SYS_PARA_ADDR;
+
+
+		data = device_work_data.device_data[i] + (u32)device_work_data.device_data[i+1]<<8 + (u32)device_work_data.device_data[i+2]<<16 + (u32)device_work_data.device_data[i+3]<<24;
+
+		
+		FLASH_ProgramWord(addr_temp,data);
+		
+		i = i+4;
+	}
+
+	
+    return revl;
+
+}
+
+void FLASH_Program_read_para(void)
+{
+
+
+	u16 i;
+	u32 addr_temp;
+	u32 Address = SYS_PARA_ADDR;
+	u32 data;
+	
+
+	if(__Read_Flash_Word(SYS_PARA_ADDR-1) == 0x86123456)
+	{
+		for(i=0;i<20;)
+		{
+			addr_temp = i + SYS_PARA_ADDR;
+		
+		
+			data = __Read_Flash_Word(addr_temp);
+
+			device_work_data.device_data[i] = data&0xff;
+			device_work_data.device_data[i+1] = (data>>8)&0xff;
+		
+			device_work_data.device_data[i+1] = (data>>16)&0xff;
+			device_work_data.device_data[i+1] = (data>>24)&0xff;
+			
+			i = i+4;
+		}
+
+
+	}
+
+
+	
+
+}
+
+
 
 //***************************系统监控线程***************************
 //函数定义: void thread_entry_SysRunLed(void* parameter)
@@ -254,6 +329,8 @@ void set_display_board_data(void)
 //出口参数：无
 //备    注：Editor：  
 //******************************************************************
+
+#if 0
 void thread_entry_SysMonitor(void* parameter)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
@@ -262,12 +339,107 @@ void thread_entry_SysMonitor(void* parameter)
 	u8 mstate = 0;
 
     u8 cnttmp = 0;
+
+	u8 mystate = 0;
+	
+	while (1)
+	{
+		
+		rt_thread_delay(RT_TICK_PER_SECOND*2);
+
+
+		for(u8 i=11;i<=15;i++)//1s
+		{
+			errorCode = eMBMasterReqReadHoldingRegister(i,0,2,RT_WAITING_FOREVER);
+
+			if(errorCode == MB_MRE_NO_ERR)
+			{	
+				u8 kk;
+
+				kk = i-1;
+				switch(i)
+				{
+				case 11:
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
+					break;
+				case 12:
+					device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house2_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
+					break;
+				case 13:
+					device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house3_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
+					break;
+				case 14:
+					device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house4_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
+					break;
+				case 15:
+					device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house5_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
+					break;
+
+				default:
+					break;
+				}		  
+				
+
+			}
+
+
+
+
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
+		
+        
+	}
+
+		
+			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+
+			if(errorCode == MB_MRE_NO_ERR)
+			{	
+
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+
+					
+			rt_thread_delay(RT_TICK_PER_SECOND/5);
+		}
+}
+
+}
+#else
+void thread_entry_SysMonitor(void* parameter)
+{
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+	uint16_t errorCount = 0;
+
+	u8 mstate = 0;
+
+    u8 cnttmp = 0;
+
+	u8 mystate = 0;
+	
 	while (1)
 	{
 		
 		rt_thread_delay(RT_TICK_PER_SECOND/2);
-        
-        set_display_board_data(); //100ms
+
+		if(mystate)
+		{
+	        set_display_board_data(); //100ms
+			mystate=0;
+
+		}
+		else
+		{
+			mystate=1;
+
+			get_display_board_data(); //1s
+
+		}
 #if 1
 		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
@@ -279,49 +451,89 @@ void thread_entry_SysMonitor(void* parameter)
 
 		for(u8 i=11;i<=15;i++)//1s
 		{
-			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+			errorCode = eMBMasterReqReadHoldingRegister(i,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
 			{	
+				u8 kk;
+
+				kk = i-1;
 				switch(i)
 				{
 				case 11:
-					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
 					break;
 				case 12:
-					device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house2_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+					device_work_data.para_type.house2_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house2_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
 					break;
 				case 13:
-					device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house3_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+					device_work_data.para_type.house3_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house3_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
 					break;
 				case 14:
-					device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house4_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+					device_work_data.para_type.house4_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house4_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
 					break;
 				case 15:
-					device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house5_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+					device_work_data.para_type.house5_co2 = sw16(usMRegHoldBuf[kk][0]);
+					device_work_data.para_type.house5_pm2_5 = sw16(usMRegHoldBuf[kk][1]);
 					break;
 
 				default:
 					break;
 				}		  
+				
 
 			}
-		}
+
+
 
 
 		rt_thread_delay(RT_TICK_PER_SECOND/5);
 		
-		get_display_board_data(); //1s
-#endif		
         
 	}
-}
 
+
+			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+
+			if(errorCode == MB_MRE_NO_ERR)
+			{	
+
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+
+					
+			rt_thread_delay(RT_TICK_PER_SECOND/5);
+		}
+
+
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
+
+//		if(device_work_data.para_type.device_power_state  == 0)
+//		{
+//			if(device_power_state_pre==0xff)
+//			{
+//				device_power_state_pre = device_work_data.para_type.device_power_state;
+//
+//				FLASH_Program_save_para();
+//			}
+//			else if(device_power_state_pre != (device_work_data.para_type.device_power_state))
+//			{
+//
+//				device_power_state_pre = device_work_data.para_type.device_power_state;
+//
+//				FLASH_Program_save_para();
+//			}
+//				
+//		}
+		
+#endif		
+}
+}
+#endif
 
 
 
@@ -393,13 +605,21 @@ void ac_ac_motor_set(u8 mode)
 		
 		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
 	}
-    else if(mode == 2)
+    else if(mode == 3)
 	{
 		GPIO_ResetBits(GPIOB,GPIO_Pin_14);
 
 		GPIO_SetBits(GPIOB,GPIO_Pin_12);
 		
 		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
+	}
+    else if(mode == 2)
+	{
+		GPIO_ResetBits(GPIOB,GPIO_Pin_14);
+
+		GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+		
+		GPIO_SetBits(GPIOB,GPIO_Pin_13);
 	}
 	else
 	{
@@ -449,7 +669,7 @@ u8 set_device_work_mode(u8 type,u8 data)
         if(data)
         {    device_work_data.para_type.device_power_state = 1;
             airclean_power_onoff(1);
-				}
+		}
         else
         {    device_work_data.para_type.device_power_state = 0;
             airclean_power_onoff(0);
@@ -503,6 +723,14 @@ void airclean_motor_set(u8 mode)
     
 
 }
+
+u8 fault_get_bit(u8 fault_type) 
+{
+    //device_work_data.para_type.fault_state |= 1<<fault_type;
+    
+	return (device_work_data.para_type.fault_state & (1<<fault_type));
+}
+
 
 
 #define PM2_5_LEVEL1_MIN    96
@@ -712,7 +940,24 @@ void airclean_work_auto_handle_thread(void * parameter)
             
 
         }
+		else if(device_work_data.para_type.device_mode == 0)
+        {//manual
 
+			
+                ac_esd_set(device_work_data.para_type.high_pressur_state);
+                ac_pht_set(device_work_data.para_type.pht_work_state);
+                airclean_motor_set(device_work_data.para_type.wind_speed_state);
+          
+        }
+
+    
+		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
+		{
+			
+			wifi_factory_set();
+			fault_set_bit(FAULT_RESET_WIFI_BIT,0);
+		}
+		
 LABEL_AUTO_AC_CONTINUE:
         rt_thread_delay(RT_TICK_PER_SECOND/20);
     }
@@ -927,6 +1172,17 @@ void rt_main_thread_entry(void* parameter)
                                    256, 6, 5);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
+
+
+	
+    init_thread = rt_thread_create("auto",
+                                   airclean_work_auto_handle_thread, RT_NULL,
+                                   256, 6, 5);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+
+
+
 }
 
 

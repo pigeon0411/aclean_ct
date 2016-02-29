@@ -143,6 +143,10 @@ void send_F7_packet(void)
 
 
 DEVICE_WORK_TYPE device_work_data;
+u8 device_power_state_pre=0xff;
+
+extern void FLASH_Program_read_para(void);
+
 
 void device_state_init(void)
 {
@@ -151,6 +155,10 @@ void device_state_init(void)
         device_work_data.device_data[i] = 0;
     }
 
+	device_power_state_pre = 0xff;
+
+	
+	FLASH_Program_read_para();
 }
 
 
@@ -374,16 +382,16 @@ void rt_wifi_key_thread_entry(void* parameter)
 
 	while(1)
 	{
-		if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5) == 0)
-        {
-                       
-            rt_thread_delay(DELAY_MS(20));
-
-			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5) == 0)
-	        {
-				wifi_factory_set();
-			}
-		}
+//		if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5) == 0)
+//        {
+//                       
+//            rt_thread_delay(DELAY_MS(20));
+//
+//			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_5) == 0)
+//	        {
+//				wifi_factory_set();
+//			}
+//		}
 
 
 
