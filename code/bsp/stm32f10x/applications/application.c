@@ -50,6 +50,7 @@
 extern void fault_set_bit(u8 fault_type,u8 val) ;
 void airclean_power_onoff(u8 mode);
 
+u32 power_tim_cnt = 0;
 
 
 #ifdef RT_USING_RTGUI
@@ -190,6 +191,16 @@ void get_display_board_data(void)
             device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
             device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
             device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
+            //device_work_data.para_type.fault_state = ucMasterRTURcvBuf[9];
+
+			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
+			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
+			{
+				
+				wifi_factory_set();
+
+			}
+			device_sys_para_save();
         }      
 	}
 }
@@ -321,6 +332,7 @@ void FLASH_Program_read_para(void)
 
 }
 
+rt_mutex_t modbus_mutex = RT_NULL;
 
 
 //***************************系统监控线程***************************
@@ -425,7 +437,10 @@ void thread_entry_SysMonitor(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/2);
+		rt_thread_delay(RT_TICK_PER_SECOND/20);
+
+		
+		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 
 		if(mystate)
 		{
@@ -441,13 +456,13 @@ void thread_entry_SysMonitor(void* parameter)
 
 		}
 #if 1
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
+		rt_thread_delay(RT_TICK_PER_SECOND/20);
 
         
 		set_dc_motor();//1s
 
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
+		//rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		for(u8 i=11;i<=15;i++)//1s
 		{
@@ -488,29 +503,30 @@ void thread_entry_SysMonitor(void* parameter)
 
 			}
 
+		rt_mutex_release(modbus_mutex);
 
 
 
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
+		rt_thread_delay(RT_TICK_PER_SECOND/100);
 		
         
 	}
 
 
-			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+//			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
+//
+//			if(errorCode == MB_MRE_NO_ERR)
+//			{	
+//
+//					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+//					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
+//
+//					
+//
+//		}
 
-			if(errorCode == MB_MRE_NO_ERR)
-			{	
-
-					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
-					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-
-					
-			rt_thread_delay(RT_TICK_PER_SECOND/5);
-		}
 
 
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
 //		if(device_work_data.para_type.device_power_state  == 0)
 //		{
@@ -706,13 +722,17 @@ u8 set_device_work_mode(u8 type,u8 data)
         break;
     case 0x07:
         if(data<=3)
-            device_work_data.para_type.wind_speed_state = 1;
+            device_work_data.para_type.wind_speed_state = data;
         set_dc_motor_speed(data);
         break;
 
     default:break;
 
     }
+
+
+	device_sys_para_save();
+	
 	return 1;
 }
 
@@ -936,8 +956,12 @@ void airclean_work_auto_handle_thread(void * parameter)
             
         }
         else if(device_work_data.para_type.device_mode == 2)
-        {
-            
+        {//manual
+        
+			ac_esd_set(device_work_data.para_type.high_pressur_state);
+			ac_pht_set(device_work_data.para_type.pht_work_state);
+			airclean_motor_set(device_work_data.para_type.wind_speed_state);
+	            
 
         }
 		else if(device_work_data.para_type.device_mode == 0)
@@ -951,18 +975,242 @@ void airclean_work_auto_handle_thread(void * parameter)
         }
 
     
-		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
-		{
-			
-			wifi_factory_set();
-			fault_set_bit(FAULT_RESET_WIFI_BIT,0);
-		}
+//		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
+//		{
+//			
+//			wifi_factory_set();
+//			fault_set_bit(FAULT_RESET_WIFI_BIT,0);
+//		}
 		
 LABEL_AUTO_AC_CONTINUE:
         rt_thread_delay(RT_TICK_PER_SECOND/20);
     }
 
 }
+
+
+void airclean_work_auto_handle(void)
+{
+
+	if(device_work_data.para_type.device_power_state)
+    {
+        if(device_work_data.para_type.device_mode == 1)
+        {//auto
+            if(device_work_data.para_type.house1_pm2_5 > 96 || 
+                device_work_data.para_type.house1_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house2_pm2_5 > 96 || 
+                device_work_data.para_type.house2_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house3_pm2_5 > 96 || 
+                device_work_data.para_type.house3_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house4_pm2_5 > 96 || 
+                device_work_data.para_type.house4_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house5_pm2_5 > 96 || 
+                device_work_data.para_type.house5_co2 > 1300)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+
+
+///////////  2
+            if(device_work_data.para_type.house1_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house1_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(1);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house2_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house2_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(1);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house3_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house3_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(1);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house4_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house4_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(1);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house5_pm2_5 > PM2_5_LEVEL2_MIN || 
+                device_work_data.para_type.house5_co2 > CO2_LEVEL2_MIN)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(1);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+
+ ///////////  3
+            if(device_work_data.para_type.house1_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house1_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(0);
+                ac_pht_set(0);
+                airclean_motor_set(0);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house2_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house2_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(0);
+                ac_pht_set(0);
+                airclean_motor_set(0);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house3_pm2_5 < PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house3_co2 < CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(0);
+                ac_pht_set(0);
+                airclean_motor_set(0);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house4_pm2_5 <PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house4_co2 <CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(0);
+                ac_pht_set(0);
+                airclean_motor_set(0);
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house5_pm2_5 <PM2_5_LEVEL1_MAX || 
+                device_work_data.para_type.house5_co2 <CO2_LEVEL1_MAX)
+            {
+                ac_esd_set(0);
+                ac_pht_set(0);
+                airclean_motor_set(0);
+
+               goto LABEL_AUTO_AC_CONTINUE;
+            }
+
+ /////////// 4
+            if(device_work_data.para_type.house1_pm2_5 < PM2_5_LEVEL2_MAX || 
+                device_work_data.para_type.house1_co2 < CO2_LEVEL2_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+               goto LABEL_AUTO_AC_CONTINUE;
+
+            }
+            else if(device_work_data.para_type.house2_pm2_5 < PM2_5_LEVEL2_MAX || 
+                device_work_data.para_type.house2_co2 < CO2_LEVEL2_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+
+                               goto LABEL_AUTO_AC_CONTINUE;
+
+            }
+            else if(device_work_data.para_type.house3_pm2_5 < PM2_5_LEVEL2_MAX || 
+                device_work_data.para_type.house3_co2 < CO2_LEVEL2_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+
+                goto LABEL_AUTO_AC_CONTINUE;
+            }
+            else if(device_work_data.para_type.house4_pm2_5 <PM2_5_LEVEL2_MAX || 
+                device_work_data.para_type.house4_co2 <CO2_LEVEL2_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+
+               goto LABEL_AUTO_AC_CONTINUE;
+
+            }
+            else if(device_work_data.para_type.house5_pm2_5 <PM2_5_LEVEL2_MAX || 
+                device_work_data.para_type.house5_co2 <CO2_LEVEL2_MAX)
+            {
+                ac_esd_set(1);
+                ac_pht_set(1);
+                airclean_motor_set(2);
+
+               goto LABEL_AUTO_AC_CONTINUE;
+            }
+
+
+
+
+            
+        }
+        else if(device_work_data.para_type.device_mode == 2)
+        {//manual
+        
+			ac_esd_set(device_work_data.para_type.high_pressur_state);
+			ac_pht_set(device_work_data.para_type.pht_work_state);
+			airclean_motor_set(device_work_data.para_type.wind_speed_state);
+	            
+
+        }
+		else if(device_work_data.para_type.device_mode == 0)
+        {//manual
+
+			
+                ac_esd_set(device_work_data.para_type.high_pressur_state);
+                ac_pht_set(device_work_data.para_type.pht_work_state);
+                airclean_motor_set(device_work_data.para_type.wind_speed_state);
+          
+        }
+
+    
+//		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
+//		{
+//			
+//			wifi_factory_set();
+//			fault_set_bit(FAULT_RESET_WIFI_BIT,0);
+//		}
+		
+LABEL_AUTO_AC_CONTINUE:
+       // rt_thread_delay(RT_TICK_PER_SECOND/20);
+    }
+
+}
+
+
 
 void airclean_out_pin_init(void)
 {
@@ -1091,7 +1339,16 @@ void airclean_power_onoff(u8 mode)
         ac_ac_motor_set(0);
     }
     
-    
+
+	if(mode)
+    {   
+        device_work_data.para_type.device_power_state = 1;
+	}
+    else
+    {    
+	    device_work_data.para_type.device_power_state = 0;
+
+    }
 }
 
 
@@ -1152,6 +1409,9 @@ void rt_main_thread_entry(void* parameter)
 {
     rt_thread_t init_thread;
 
+
+	SPI_FLASH_Init();
+
 	device_state_init();
 
 	
@@ -1175,41 +1435,85 @@ void rt_main_thread_entry(void* parameter)
 
 
 	
-    init_thread = rt_thread_create("auto",
-                                   airclean_work_auto_handle_thread, RT_NULL,
-                                   256, 6, 5);
-    if (init_thread != RT_NULL)
-        rt_thread_startup(init_thread);
+//    init_thread = rt_thread_create("auto",
+//                                   airclean_work_auto_handle_thread, RT_NULL,
+//                                   256, 6, 5);
+//    if (init_thread != RT_NULL)
+//        rt_thread_startup(init_thread);
 
 
 
 }
 
 
-u32 power_tim_cnt = 0;
+u8 power_state_pre = 0xff;
 
 void thread_entry_power_monitor (void* parameter)
 {
     
     while(1)
     {
+
+		if(power_state_pre==0xff)
+		{
+			if(device_work_data.para_type.timing_state)
+			{
+				
+				power_tim_cnt=0;
+				power_state_pre = device_work_data.para_type.timing_state;
+			}
+
+		}
+		else
+		{
+			if(device_work_data.para_type.timing_state)
+			{
+				if(device_work_data.para_type.timing_state != power_state_pre)
+					{
+				power_tim_cnt=0;
+				power_state_pre = device_work_data.para_type.timing_state;
+
+					}
+			}
+
+		}
+		
+		power_state_pre = device_work_data.para_type.timing_state;
+		
         if(power_tim_cnt < 0xFFFFFFFF)
             power_tim_cnt++;
 
-        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60))
+        //if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60)) // hour
+        
+        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*10) && (device_work_data.para_type.timing_state))// half minute
         {
         	if(device_work_data.para_type.timing_state)
-            {airclean_power_onoff(0);
-            power_tim_cnt = 0;
+            {
 
-        		}
+			
+
+				
+				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+				device_work_data.para_type.device_power_state = 0;
+
+				set_display_board_data(); //100ms
+				rt_mutex_release(modbus_mutex);
+					
+				airclean_power_onoff(0);
+	            //power_tim_cnt = 0;
+
+				
+    		}
         }
         else
         {
         
-
+			airclean_work_auto_handle();
         }
         rt_thread_delay(RT_TICK_PER_SECOND/10);
+
+
+		
     }
 }
 
@@ -1219,8 +1523,10 @@ int rt_application_init(void)
     rt_thread_t init_thread;
 
 
-	
-    init_thread = rt_thread_create("mY",
+	modbus_mutex = rt_mutex_create("mdbusmut",RT_IPC_FLAG_FIFO);
+
+
+	init_thread = rt_thread_create("mY",
                                    rt_main_thread_entry, RT_NULL,
                                    512, 6, 5);
     if (init_thread != RT_NULL)

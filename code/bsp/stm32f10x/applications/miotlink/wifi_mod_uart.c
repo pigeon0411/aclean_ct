@@ -7,6 +7,7 @@
 #include "bsp.h"
 
 #include "application.h"
+#include "bsp_spi_flash.h"
 
 void uart_wifi_set_device(void);
 
@@ -148,6 +149,9 @@ u8 device_power_state_pre=0xff;
 extern void FLASH_Program_read_para(void);
 
 
+#define	SYS_PARA_FLAG_ADDR		2
+#define	SYS_PARA_START_ADDR			10
+
 void device_state_init(void)
 {
     for(u8 i=0;i<sizeof(struct __para_type);i++)
@@ -158,9 +162,30 @@ void device_state_init(void)
 	device_power_state_pre = 0xff;
 
 	
-	FLASH_Program_read_para();
+
+	u8 sys_para_flag = 0;
+
+	SPI_FLASH_BufferRead(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
+
+	if(sys_para_flag == 0x86)
+		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+
+
+	device_work_data.para_type.fault_state = 0;
+	
 }
 
+
+void device_sys_para_save(void)
+{
+	u8 sys_para_flag = 0x86;
+
+		SPI_FLASH_BufferWrite(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
+
+		SPI_FLASH_BufferWrite(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+
+
+}
 
 u8 return_current_device_state(void)
 {
