@@ -503,7 +503,6 @@ void thread_entry_SysMonitor(void* parameter)
 
 			}
 
-		rt_mutex_release(modbus_mutex);
 
 
 
@@ -512,21 +511,22 @@ void thread_entry_SysMonitor(void* parameter)
         
 	}
 
+#if 0
+			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
-//			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
-//
-//			if(errorCode == MB_MRE_NO_ERR)
-//			{	
-//
-//					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
-//					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
-//
-//					
-//
-//		}
+			if(errorCode == MB_MRE_NO_ERR)
+			{	
 
+					device_work_data.para_type.house1_co2 = sw16(usMRegHoldBuf[0][0]);
+					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
 
+					
 
+		}
+
+#endif
+
+	rt_mutex_release(modbus_mutex);
 
 //		if(device_work_data.para_type.device_power_state  == 0)
 //		{
@@ -679,6 +679,10 @@ void ac_workmode_set(u8 mode)
 
 u8 set_device_work_mode(u8 type,u8 data)
 {
+
+	if(device_work_data.para_type.device_mode == 1)
+		return 1;
+
     switch(type)
         {
     case 0x02:
@@ -724,11 +728,20 @@ u8 set_device_work_mode(u8 type,u8 data)
         if(data<=3)
             device_work_data.para_type.wind_speed_state = data;
         set_dc_motor_speed(data);
+
+		ac_ac_motor_set(data);
         break;
 
     default:break;
 
     }
+
+
+	
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+	
+	set_display_board_data(); //100ms
+	rt_mutex_release(modbus_mutex);
 
 
 	device_sys_para_save();
@@ -1327,16 +1340,16 @@ void airclean_power_onoff(u8 mode)
     
     if(mode)
     {//on
-        ac_esd_set(1);
-        ac_pht_set(1);
-        ac_ac_motor_set(1);
+        ac_esd_set(device_work_data.para_type.high_pressur_state);
+        ac_pht_set(device_work_data.para_type.pht_work_state);
+        ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
         
     }
     else
     {//off
         ac_esd_set(0);
         ac_pht_set(0);
-        ac_ac_motor_set(0);
+        ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
     }
     
 
