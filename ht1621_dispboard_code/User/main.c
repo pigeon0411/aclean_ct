@@ -18,22 +18,23 @@ u8 cmd_send_lenth;
 
 
 extern u32 time_tick_cnt;
+void fault_set_bit(u8 fault_type,u8 val);
 
 
 extern volatile  u8 Ht1621_BUF[];
 
+#define FAULT_ESD_BIT    (0)
+#define FAULT_MOTOR_BIT    (1)
+#define FAULT_PHT_BIT    (2)
+#define FAULT_CLEAN_BIT    (3)
+#define FAULT_RUN_BIT    (4)
 
+#define FAULT_WIND_BIT    (5)
+#define FAULT_RESET_WIFI_BIT    (6)
 
 DEVICE_WORK_TYPE device_work_data;
 
-void device_state_init(void)
-{
-    for(u8 i=0;i<sizeof(struct __para_type);i++)
-    {
-        device_work_data.device_data[i] = 0;
-    }
 
-}
 
 u8 wifi_send_packet_buf_pub[100];
 
@@ -97,6 +98,9 @@ u8 return_current_device_state(void)
     }
 
     wifi_send_packet_data(buftmp,29);
+
+
+	fault_set_bit(FAULT_RESET_WIFI_BIT,0);
 
     return 0;
 }
@@ -236,7 +240,7 @@ void serial_int1_send(void)	   //send data to USAR1
 
 
 
-
+/*
 #define FAULT_MOTOR_BIT    (0)
 #define FAULT_PHT_BIT    (1)
 #define FAULT_CLEAN_BIT    (2)
@@ -245,16 +249,17 @@ void serial_int1_send(void)	   //send data to USAR1
 #define FAULT_WIND_BIT    (5)
 #define FAULT_RESET_WIFI_BIT    (6)
 
+*/
 
 
 
 void fault_set_bit(u8 fault_type,u8 val) 
 {
-    if(!val)
+    if(val)
         device_work_data.para_type.fault_state |= 1<<fault_type;
     else
         device_work_data.para_type.fault_state &= ~(1<<fault_type);
-    
+
 
 }
 
@@ -280,6 +285,9 @@ Ht1621_on_disp(10);  //T12 µç»ú¹ÊÕÏ
 Ht1621_on_disp(11);  //T11 ¾²µç¹ÊÕÏ
 Ht1621_on_disp(12);    //T10 ÔËÐÐ¹ÊÕÏ
 */
+
+//ljy start 160302 
+/*
 void fault_check(void)
 {
 	u8 tmp;
@@ -291,7 +299,8 @@ void fault_check(void)
 	u8 motortmp = fault_get_bit(0,tmp);
 
 	if(motortmp)
-		Ht1621_on_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+		//Ht1621_on_disp(10);	  //T12 µç»ú¹ÊÕÏ
+		Ht1621_on_disp(11);	  //T11 ¾²µç¹ÊÕÏ
 		
 	for(u8 i=1;i<=5;i++)
 	{
@@ -302,19 +311,19 @@ void fault_check(void)
 			case FAULT_MOTOR_BIT:
 				case FAULT_WIND_BIT:
 				tmp = 1;
-				Ht1621_on_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_on_disp(10);	  //T12 µç»ú¹ÊÕÏ
 				break;
 			case FAULT_PHT_BIT:
 				Ht1621_on_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
 				break;
 			case FAULT_CLEAN_BIT:
-				Ht1621_on_disp(8);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_on_disp(8);	  //T14 ÇåÏ´¹ÊÕÏ
 				break;
 			case FAULT_ESD_BIT:
-				Ht1621_on_disp(11);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_on_disp(11);	  //T11 ¾²µç¹ÊÕÏ
 				break;
 			case FAULT_RUN_BIT:
-				Ht1621_on_disp(12);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_on_disp(12);	 //T10 ÔËÐÐ¹ÊÕÏ
 				break;
 				
 			default:   //T13 ¹âÇâ¹ÊÕÏ
@@ -330,26 +339,29 @@ void fault_check(void)
 		{
 			switch(i)
 			{
-			case FAULT_MOTOR_BIT:
+			case FAULT_ESD_BIT:
+			//case FAULT_MOTOR_BIT:
 			case FAULT_WIND_BIT:
 				if(!motortmp)
 				{
 					if(tmp!=1)
-					Ht1621_off_disp(10);	  //T13 ¹âÇâ¹ÊÕÏ
-
+					//Ht1621_off_disp(10);	  //T12 µç»ú¹ÊÕÏ
+					Ht1621_off_disp(11);	  //T11 ¾²µç¹ÊÕÏ
 				}
 				break;
 			case FAULT_PHT_BIT:
 				Ht1621_off_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
 				break;
 			case FAULT_CLEAN_BIT:
-				Ht1621_off_disp(8);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_off_disp(8);	  //T14 ÇåÏ´¹ÊÕÏ
 				break;
-			case FAULT_ESD_BIT:
-				Ht1621_off_disp(11);	  //T13 ¹âÇâ¹ÊÕÏ
+			//case FAULT_ESD_BIT:
+			case FAULT_MOTOR_BIT:
+				//Ht1621_off_disp(11);	  //T11 ¾²µç¹ÊÕÏ
+				Ht1621_off_disp(10);	  //T12 µç»ú¹ÊÕÏ
 				break;
 			case FAULT_RUN_BIT:
-				Ht1621_off_disp(12);	  //T13 ¹âÇâ¹ÊÕÏ
+				Ht1621_off_disp(12);	  //T10 ÔËÐÐ¹ÊÕÏ
 				break;
 			default:
 				break;
@@ -360,6 +372,74 @@ void fault_check(void)
 
 	}
 }
+*/
+
+void fault_check(void)
+{
+	u8 tmp;
+	tmp = device_work_data.para_type.fault_state;
+
+	for(u8 i=0;i<=5;i++)
+	{
+		if(fault_get_bit(i,tmp))
+		{
+			switch(i)
+			{
+			case FAULT_ESD_BIT:
+				Ht1621_on_disp(11);	  //T11 ¾²µç¹ÊÕÏ	
+				break;
+			case FAULT_MOTOR_BIT:
+				Ht1621_on_disp(10);	  //T12 µç»ú¹ÊÕÏ
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_on_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_on_disp(12);	 //T10 ÔËÐÐ¹ÊÕÏ
+			       break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_on_disp(8);	  //T14 ÇåÏ´¹ÊÕÏ
+				break;
+			default:  
+				break;
+
+			}
+
+			delay_ms(50);
+			Ht1621Display();  //PM2.5Î»ÖÃÏÔÊ¾	
+		}
+		else
+		{
+			switch(i)
+			{
+			case FAULT_ESD_BIT:
+				Ht1621_off_disp(11);	  //T11 ¾²µç¹ÊÕÏ
+				break;	
+			case FAULT_MOTOR_BIT:
+				Ht1621_off_disp(10);	  //T12 µç»ú¹ÊÕÏ
+			
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_off_disp(9);	  //T13 ¹âÇâ¹ÊÕÏ
+				break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_off_disp(8);	  //T14 ÇåÏ´¹ÊÕÏ
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_off_disp(12);	  //T10 ÔËÐÐ¹ÊÕÏ
+				break;
+			default:
+				break;
+			}
+
+		}
+
+	}
+}
+//ljy end 160302 
+
+
+u8 device_power_state_pre = 0xff;
 
 void cmd_uart_check(void)
 {
@@ -426,6 +506,32 @@ void cmd_uart_check(void)
 
 			device_work_data.para_type.fault_state = rx_buff_tmp[30];
 
+			device_work_data.para_type.device_power_state = rx_buff_tmp[4];
+
+
+
+#if 1
+// ÒÔÏÂ²¿·ÖÎªÊÕµ½Ö÷°å¹Ø»úÃüÁîºó£¬½«¹Ø±ÕÏÔÊ¾ÆÁ£¬ÔÚÖ÷º¯ÊýÖÐÈÔÈ»ÐèÒª¼ì²âµçÔ´°´¼ü
+//Èç¹û device_work_data.para_type.device_power_state Îª0µÄÊ±ºò£¬ÆÁÄ»½«¹Ø±Õ£¬Ö±µ½ÊÕµ½ device_work_data.para_type.device_power_stateÎª1²Å¿ªÆôÆÁÄ»
+//»òÕßÖ±µ½°´ÏÔÊ¾°åµÄµçÔ´¼ü²Å¿ª¿ªÆôÏÔÊ¾
+			if(device_power_state_pre==0xff || device_power_state_pre!= device_work_data.para_type.device_power_state)
+			{
+				if(device_work_data.para_type.device_power_state == 0)
+				{
+				
+					onoff_device_set(OFF);
+
+				}
+				else
+				{
+					onoff_device_set(ON);
+				}
+
+				device_power_state_pre = device_work_data.para_type.device_power_state;
+			}
+#endif
+
+			
 			fault_check();
 			
      
@@ -456,6 +562,20 @@ void reset_wifi(void)
 }
 
 
+void device_state_init(void)
+{
+    for(u8 i=0;i<sizeof(struct __para_type);i++)
+    {
+        device_work_data.device_data[i] = 0;
+    }
+
+	device_power_state_pre = 0xff;
+
+
+	device_work_data.para_type.fault_state = 0;
+	device_work_data.para_type.device_power_state = 1;
+}
+
 
 int main(void)
 {
@@ -480,6 +600,11 @@ int main(void)
        Ht1621_cls();  //ÇåÆÁ
        delay_ms(50);
 
+
+	device_state_init();
+
+	
+
 	uart2_init();
 
 
@@ -495,7 +620,7 @@ int main(void)
 
 
 //
-//							Ht1621Tab3[0]= 12;   //PM2.5 ¸ßÎ»
+//				       Ht1621Tab3[0]= 12;   //PM2.5 ¸ßÎ»
 //					Ht1621Tab3[1]= 8;	//PM2.5 
 //					Ht1621Tab3[2]= 7;  //PM2.5 
 //					Ht1621Tab3[3]= 6;	//PM2.5 µÍÎ»
@@ -503,18 +628,25 @@ int main(void)
 //					Ht1621Tab3[7]=3;  // co2 µÍÎ»
 //					Ht1621Tab3[8]=2;  //co2 
 //					Ht1621Tab3[9]=1;  //co2 
-//					Ht1621Tab3[10]=5;	//co2 ¸ßÎ
+//					Ht1621Tab3[10]=5;//co2 ¸ßÎ»
 //
 
 
 	time_tick_cnt = TICKS_PER_SECOND;
 
+
+
+
   while(1)
   {
 
+		
+        PollingKey1();
         Key_Scan();   //°´¼üÉ¨Ãè
         PollingKey();
-        onoff_Scan(); //¿ª¹Ø»ú
+
+		onoff_Scan(); //¿ª¹Ø»ú
+		
         cmd_uart_check();	
 
         if(time_tick_cnt> TICKS_PER_SECOND )

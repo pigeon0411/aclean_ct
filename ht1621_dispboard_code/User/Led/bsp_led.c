@@ -14,6 +14,7 @@ volatile u8 key1 = 1; //----加一个按键标志//静电
 volatile u8  key2 = 1; //----加一个按键标志//光氢
 volatile u8  key3 = 1; //----加一个按键标志//开关
 volatile u8  key4 = 1; //----加一个按键标志//
+volatile u8  key5 = 1; //----加一个按键标志//
 volatile u32  time = 0; // ms 计时变量 
 static u16 KeyDownTimes,KeyDoubleTimes;
 
@@ -297,7 +298,6 @@ Ht1621Tab3[10]=0;  //co2 高位
 }
 
 /*
-Ht1621_off_disp(0);   //T5 co2/T4 PM2.5 /T2 光氢/T1 静电
 Ht1621_off_disp(1);    //T9 定时
 Ht1621_off_disp(2);   //T8 手动
 Ht1621_off_disp(3);    //T7 智能
@@ -492,9 +492,135 @@ Ht1621_on_disp(19);   //T5 co2
 
 */
 
-void Key_Scan(void)   //按键扫描
+
+void PollingKey1(void)  //开关机
 {
 
+ static u8 KeyStep;
+
+ switch (KeyStep)
+ {
+  case 0:
+  {
+   if (!KeyPina9)
+   
+   //if (KeyPin==KEY_OFF)//有键按下
+   {
+    //printf("\r\n按下");
+    KeyState = KeyDown;
+
+    if (KeyDoubleTimes > 0)
+    {
+     KeyStep = 4;//双击
+    }
+    else
+    {
+     KeyStep = 2;//不是双击
+    }
+   }
+   else if(KeyDoubleTimes > 0)
+   {
+    KeyDoubleTimes--;
+
+    if ((KeyDoubleTimes == 0)&&(KeyState == KeyShort))
+    {
+    
+     //printf("\r\n短按处理");
+      time = 0;
+      key3 = ~key3;   
+     KeyState = KeyUp;
+    }
+   }
+  }
+   break;
+  case 1://按下
+  {
+
+   if (!KeyPina9)
+  // if (KeyPin==KEY_OFF)
+   {
+    KeyDownTimes++;
+    if (KeyDownTimes < 200)
+    {
+     KeyState = KeyShort;
+    }
+    else if(KeyState != KeyLong)
+    {
+     KeyState = KeyLong;
+    // printf("\r\n长按处理");
+       time = 0;
+	key5 = 0;
+	//device_work_data.para_type.fault_state = 2;
+    }
+    else if (KeyDownTimes >= 200)//防止加满溢出
+    {
+     KeyDownTimes = 200;
+    }
+   }
+   else
+   {
+    KeyStep = 2;
+   }
+
+  }
+   break;
+  case 2://
+  {
+   if (KeyPina9)//弹起
+   {
+    KeyStep = 3;
+         key5 =1;
+   }
+   else//按下
+   {
+    KeyStep = 1;
+   }
+  }
+   break;
+  case 3://弹起
+  {
+   if (KeyPina9)//弹起
+   {
+
+    if (KeyDownTimes < 200)
+    {
+     KeyDoubleTimes = 10;
+    }
+    KeyDownTimes = 0;
+    KeyStep = 0;
+   }
+   else 
+   {
+    KeyStep = 2;
+   }
+  }
+   break;
+  case 4:
+  {
+   if (KeyPina9)//如果弹起的话就执行
+   {
+    KeyState = KeyUp;
+   // printf("\r\n双击处理");
+    KeyStep = 0;
+   }
+  }
+   break;
+ default:
+  KeyStep = 0;
+  break;
+ }
+ delay_us(100);
+ 
+}
+
+
+
+
+
+
+void Key_Scan(void)   //按键扫描
+{
+     /*
        if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_9) == KEY_OFF )  //开关机
       {
        delay_ms(10); //---延时10ms
@@ -505,6 +631,8 @@ void Key_Scan(void)   //按键扫描
        while(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_9) == KEY_OFF ) ;   
 	   time = 0;
       } 
+      */
+      
 	if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF ) &&(key3==ON))//静电
       {
        delay_ms(10);  //---延时10ms
@@ -527,6 +655,9 @@ void Key_Scan(void)   //按键扫描
 	   }	 	   
           Ht1621Tab3[5]=count3;  // 定时时间高位
            Ht1621Tab3[6]=count2;  //定时时间低位
+
+		   
+		   device_work_data.para_type.timing_state = count3*10+count2;	 //T2 光氢 
 	  }
 	  
 	  else
@@ -563,6 +694,10 @@ void Key_Scan(void)   //按键扫描
 		
            Ht1621Tab3[5]=count3;  // 定时时间高位
           Ht1621Tab3[6]=count2;  //定时时间低位
+
+
+		  
+		  device_work_data.para_type.timing_state = count3*10+count2;	//T2 光氢 
 	  }	
 	  else
 	  {
@@ -605,7 +740,7 @@ void PollingKey(void)  //智能/手动/定时
 if(key3==ON)
 {
  static u8 KeyStep;
- 
+
  switch (KeyStep)
  {
   case 0:
@@ -628,8 +763,10 @@ if(key3==ON)
    else if(KeyDoubleTimes > 0)
    {
     KeyDoubleTimes--;
+
     if ((KeyDoubleTimes == 0)&&(KeyState == KeyShort))
     {
+    
      //printf("\r\n短按处理");
       time = 0;
 	 key4 = 1;
@@ -641,11 +778,11 @@ if(key3==ON)
      KeyState = KeyUp;
     }
    }
-   
   }
    break;
   case 1://按下
   {
+
    if (!KeyPin)
   // if (KeyPin==KEY_OFF)
    {
@@ -660,7 +797,7 @@ if(key3==ON)
     // printf("\r\n长按处理");
        time = 0;
 	key4 = 0;
-	count1=1;
+	count1=1; 
     }
     else if (KeyDownTimes >= 200)//防止加满溢出
     {
@@ -671,6 +808,7 @@ if(key3==ON)
    {
     KeyStep = 2;
    }
+
   }
    break;
   case 2://
@@ -741,9 +879,18 @@ void onoff_Scan(void) //开关
      else
      {
      	 HT1621_BL(OFF);
+	 HT1621_LED(OFF);
         Ht1621_cls();  //清屏
+       
+       device_work_data.para_type.wind_speed_state = 0;    // 风速
+       device_work_data.para_type.high_pressur_state = 0;    //T1 静电 
+       device_work_data.para_type.pht_work_state = 0;   //T2 光氢 
+	
         Ht1621Tab3[5]=count3;  // 定时时间高位
         Ht1621Tab3[6]=count2;  //定时时间低位
+
+		device_work_data.para_type.timing_state = count3*10+count2;   //T2 光氢 
+	
         count3=0;
 	 count2=0;
 
@@ -751,6 +898,50 @@ void onoff_Scan(void) //开关
      }
 
 }
+
+
+//mode ; 0,off; 1,on
+void onoff_device_set(u8 mode) //开关
+{
+
+    if(mode==ON)
+    {	
+     pin0_Scan();  //PM2.5 CO2
+     pin1_Scan();  //ug/m3  ppm
+     pin2_Scan();  //静电开关
+     pin3_Scan();  //光氢开关
+     pin4_Scan();  //风速
+     pin5_Scan();  //智能/手动/定时
+     pin6_Scan(); //智能/手动/定时
+     Ht1621_BL();  //背光
+     Ht1621Display();  //PM2.5位置显示  
+
+	 device_work_data.para_type.device_power_state = 1;
+     }
+     else
+     {
+     	 HT1621_BL(OFF);
+	 HT1621_LED(OFF);
+        Ht1621_cls();  //清屏
+       
+       device_work_data.para_type.wind_speed_state = 0;    // 风速
+       device_work_data.para_type.high_pressur_state = 0;    //T1 静电 
+       device_work_data.para_type.pht_work_state = 0;   //T2 光氢 
+	
+        Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+
+		device_work_data.para_type.timing_state = count3*10+count2;   //T2 光氢 
+	
+        count3=0;
+	 count2=0;
+
+	 device_work_data.para_type.device_power_state = 0;
+     }
+
+}
+
+
 
 void pin0_Scan(void)  //PM2.5 CO2
 {
@@ -774,11 +965,10 @@ void pin2_Scan(void)  //静电开关
              device_work_data.para_type.high_pressur_state = 1;
 
       }
-     else if(count1==ON)
+     else if((count1==ON)&&(key4 !=0))
       {
       Ht1621_on_disp(16);    //T1 静电 
              device_work_data.para_type.high_pressur_state = 1;
-
 	}  
     else
      {
@@ -795,7 +985,7 @@ void pin3_Scan(void)  //光氢开关
                 device_work_data.para_type.pht_work_state = 1;
 
         }
-	else if(count1==1)
+	else if((count1==ON)&&(key4 !=0))
 	 {
 	 Ht1621_on_disp(17);   //T2 光氢 
 	         device_work_data.para_type.pht_work_state = 1;
@@ -811,22 +1001,32 @@ void pin3_Scan(void)  //光氢开关
 
 void pin4_Scan(void) //风速
 {
-        if(count==0)
+        if((count1==1)&&(key4 !=0))
+        {
+        Ht1621_on_disp(14);   //S3 风速中
+        device_work_data.para_type.wind_speed_state = 2;
+        }	
+        else if(count==0)
         {
         Ht1621_on_disp(13);    //S3 风速低  
         device_work_data.para_type.wind_speed_state = 1;
-        }
-			
-        if(count==1)
+        }		
+       else if(count==1)
         {
         Ht1621_on_disp(14);   //S3 风速中
         device_work_data.para_type.wind_speed_state = 2;
         }
-		
-        if(count==2)
+       else if(count==2)
         { 
         Ht1621_on_disp(15);    //S3 风速高
         device_work_data.para_type.wind_speed_state = 3;
+        }
+         else
+        {
+         Ht1621_off_disp(13);    //S3 风速低
+         Ht1621_off_disp(14);   //S3 风速中
+         Ht1621_off_disp(15);    //S3 风速高
+         device_work_data.para_type.wind_speed_state = 0;
         }
 		
 }
@@ -846,6 +1046,7 @@ void pin5_Scan(void) //智能/手动/定时
         Ht1621_on_disp(3);    //T7  开智能
         Ht1621_off_disp(1);    //T9 关定时
         device_work_data.para_type.device_mode = 1;
+
         }
 		
         if(key4 ==0)
@@ -853,8 +1054,23 @@ void pin5_Scan(void) //智能/手动/定时
         Ht1621_off_disp(2);    //T8 关手动
 	  Ht1621_off_disp(3);   //T7  关智能
         Ht1621_on_disp(1);    //T9 开定时
-        device_work_data.para_type.device_mode = 2;
+        //device_work_data.para_type.device_mode = 2;
+
+		
+
+	//Ht1621_off_disp(16);    //T1 静电 
+       //Ht1621_off_disp(17);   //T2 光氢
         }
+		
+        if(key5 ==0)
+        { 
+          reset_wifi();
+         //device_work_data.para_type.fault_state |= 0x20;
+        }
+        else
+        {
+         //device_work_data.para_type.fault_state &= ~0x20;
+	 }
 
 }
 
@@ -890,7 +1106,7 @@ void pin6_Scan(void)  //定时图标
 
 void Ht1621_BL(void) //背光
 {
-    if ( time>= 1000 )  //1000  1 ms = 1s 时间到 
+    if ( time>= 3000 )  //1000  1 ms = 1s 时间到 
     {
      HT1621_BL(OFF);
      HT1621_LED(OFF);
@@ -901,9 +1117,9 @@ void Ht1621_BL(void) //背光
      HT1621_LED(ON);
     }
 	
-     if (time >= 1000)//防止加满溢出
+     if (time >= 3000)//防止加满溢出
     {
-     time = 1000;
+     time = 3000;
     }
 }
 

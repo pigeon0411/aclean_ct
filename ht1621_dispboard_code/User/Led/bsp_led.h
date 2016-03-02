@@ -110,7 +110,7 @@ extern DEVICE_WORK_TYPE device_work_data;
 
 #define  KeyPin  (GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_7))
 
-
+#define  KeyPina9  (GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_9))
 					
 #define BIAS 0x52 //0b1000 0101 0010 1/3duty 4com
 #define SYSDIS 0X00 //0b1000 0000 0000 关振系统荡器和LCD偏压发生器
@@ -137,6 +137,7 @@ void Ht1621_cls(void);
 void Ht1621_clrbuf(void);
 void Ht1621_off_disp(u8 f) ;
 void Ht1621_on_disp(u8 f); 
+void PollingKey1(void);  //开关机
 void Key_Scan(void)  ;
 void PollingKey(void);  //智能/手动/定时
 void onoff_Scan(void); //开关
@@ -149,6 +150,7 @@ void pin5_Scan(void) ;
 void pin6_Scan(void) ;
 void Ht1621_BL(void);
 void Ht1621Display(void);
+void onoff_device_set(u8 mode); //开关
 
 #endif /* __LED_H */
 
