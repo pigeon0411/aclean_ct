@@ -1423,15 +1423,38 @@ void rt_main_thread_entry(void* parameter)
     rt_thread_t init_thread;
 
 
+	airclean_system_init();
+
+
+
 	SPI_FLASH_Init();
 
 	device_state_init();
 
 	
+	init_thread = rt_thread_create("MBMasterPoll",
+								   thread_entry_ModbusMasterPoll, RT_NULL,
+								   512, 9, 50);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
 
-	airclean_system_init();
 
-	rt_thread_delay(600);
+	rt_thread_delay(RT_TICK_PER_SECOND/2);
+
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+	set_display_board_data(); //100ms
+	rt_mutex_release(modbus_mutex);	
+
+    init_thread = rt_thread_create("SysMonitor",
+                                   thread_entry_SysMonitor, RT_NULL,
+                                   512, 11, 50);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+			
+
+
+
+	rt_thread_delay(RT_TICK_PER_SECOND);
 	//rt_key_ctl_init();
 	
 	//rt_adc_ctl_init();
@@ -1560,17 +1583,6 @@ int rt_application_init(void)
         rt_thread_startup(init_thread);
 
 		
-    init_thread = rt_thread_create("SysMonitor",
-                                   thread_entry_SysMonitor, RT_NULL,
-                                   512, 11, 50);
-    if (init_thread != RT_NULL)
-        rt_thread_startup(init_thread);
-			
-	init_thread = rt_thread_create("MBMasterPoll",
-								   thread_entry_ModbusMasterPoll, RT_NULL,
-								   512, 9, 50);
-	if (init_thread != RT_NULL)
-		rt_thread_startup(init_thread);
 
 
 	init_thread = rt_thread_create("power",

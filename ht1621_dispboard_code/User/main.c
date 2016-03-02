@@ -23,6 +23,18 @@ void fault_set_bit(u8 fault_type,u8 val);
 
 extern volatile  u8 Ht1621_BUF[];
 
+
+#if 1
+#define FAULT_MOTOR_BIT    (0)
+#define FAULT_PHT_BIT    (1)
+#define FAULT_CLEAN_BIT    (2)
+#define FAULT_ESD_BIT    (3)
+#define FAULT_RUN_BIT    (4)
+#define FAULT_WIND_BIT    (5)
+#define FAULT_RESET_WIFI_BIT    (6)
+
+
+#else
 #define FAULT_ESD_BIT    (0)
 #define FAULT_MOTOR_BIT    (1)
 #define FAULT_PHT_BIT    (2)
@@ -31,6 +43,7 @@ extern volatile  u8 Ht1621_BUF[];
 
 #define FAULT_WIND_BIT    (5)
 #define FAULT_RESET_WIFI_BIT    (6)
+#endif
 
 DEVICE_WORK_TYPE device_work_data;
 
@@ -374,6 +387,91 @@ void fault_check(void)
 }
 */
 
+
+
+#if 1
+void fault_check(void)
+{
+	u8 tmp;
+	
+	tmp = device_work_data.para_type.fault_state;
+
+	u8 tmp2=0;
+
+	u8 motortmp = fault_get_bit(0,tmp);
+
+	if(motortmp)
+		Ht1621_on_disp(10);	  //T13 1a?a1那??
+		
+	for(u8 i=1;i<=5;i++)
+	{
+		if(fault_get_bit(i,tmp))
+		{
+			switch(i)
+			{
+			case FAULT_MOTOR_BIT:
+				case FAULT_WIND_BIT:
+				tmp = 1;
+				Ht1621_on_disp(10);	  //T13 1a?a1那??
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_on_disp(9);	  //T13 1a?a1那??
+				break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_on_disp(8);	  //T13 1a?a1那??
+				break;
+			case FAULT_ESD_BIT:
+				Ht1621_on_disp(11);	  //T13 1a?a1那??
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_on_disp(12);	  //T13 1a?a1那??
+				break;
+				
+			default:   //T13 1a?a1那??
+				break;
+
+			}
+
+			
+			delay_ms(50);
+			Ht1621Display();  //PM2.5??????那?	
+		}
+		else
+		{
+			switch(i)
+			{
+			case FAULT_MOTOR_BIT:
+			case FAULT_WIND_BIT:
+				if(!motortmp)
+				{
+					if(tmp!=1)
+					Ht1621_off_disp(10);	  //T13 1a?a1那??
+
+				}
+				break;
+			case FAULT_PHT_BIT:
+				Ht1621_off_disp(9);	  //T13 1a?a1那??
+				break;
+			case FAULT_CLEAN_BIT:
+				Ht1621_off_disp(8);	  //T13 1a?a1那??
+				break;
+			case FAULT_ESD_BIT:
+				Ht1621_off_disp(11);	  //T13 1a?a1那??
+				break;
+			case FAULT_RUN_BIT:
+				Ht1621_off_disp(12);	  //T13 1a?a1那??
+				break;
+			default:
+				break;
+			}
+
+			
+		}
+
+	}
+}
+
+#else
 void fault_check(void)
 {
 	u8 tmp;
@@ -437,7 +535,7 @@ void fault_check(void)
 	}
 }
 //ljy end 160302 
-
+#endif
 
 u8 device_power_state_pre = 0xff;
 

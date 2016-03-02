@@ -138,6 +138,10 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGUARM</Key>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -166,9 +170,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>521</LineNumber>
+          <LineNumber>397</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134223808</Address>
+          <Address>134224058</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -177,7 +181,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>F:\air_clean\aclean_ct\ht1621_dispboard_code\Project\User\main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\______\../../User/main.c\521</Expression>
+          <Expression>\\______\../../User/main.c\397</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

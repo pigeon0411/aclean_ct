@@ -172,6 +172,9 @@ void device_state_init(void)
 
 
 	device_work_data.para_type.fault_state = 0;
+
+
+	airclean_power_onoff(1);
 	
 }
 
