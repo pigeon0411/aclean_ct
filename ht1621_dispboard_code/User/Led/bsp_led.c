@@ -469,6 +469,8 @@ void Ht1621_on_disp(u8 f)  //开启显示
   
 }
 
+
+
 /*
 Ht1621_on_disp(1);    //T9 定时
 Ht1621_on_disp(2);   //T8 手动
@@ -662,7 +664,12 @@ void Key_Scan(void)   //按键扫描
 	  
 	  else
 	  {
-         key1 = ~key1;
+         //key1 = ~key1;
+	    key1++;
+	     if(key1==3)
+	      {
+              key1=1;
+	       }
 	  }
 	  
        while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF );     
@@ -701,7 +708,12 @@ void Key_Scan(void)   //按键扫描
 	  }	
 	  else
 	  {
-         key2 = ~key2;
+         //key2 = ~key2;
+         	    key2++;
+	     if(key2==3)
+	      {
+              key2=1;
+	       }
 	  }
 	  
       while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF ) ;  
@@ -959,42 +971,45 @@ Ht1621_on_disp(4);   //T6 ug/m3/ppm
 
 void pin2_Scan(void)  //静电开关
 {
-     if(key1==ON)
+     if(key1==1)
       {
-      Ht1621_on_disp(16);    //T1 静电 
-             device_work_data.para_type.high_pressur_state = 1;
+         //Ht1621_on_disp(16);    //T1 静电 
+          device_work_data.para_type.high_pressur_state = 1;
 
       }
-     else if((count1==ON)&&(key4 !=0))
+     else if((count1==1)&&(key4 !=0))
       {
-      Ht1621_on_disp(16);    //T1 静电 
-             device_work_data.para_type.high_pressur_state = 1;
+       //Ht1621_on_disp(16);    //T1 静电 
+         device_work_data.para_type.high_pressur_state = 1;
+	   
 	}  
     else
      {
-        Ht1621_off_disp(16);    //T1 静电
-        device_work_data.para_type.high_pressur_state = 0;
+        // Ht1621_off_disp(16);    //T1 静电
+          device_work_data.para_type.high_pressur_state = 0;
+		
       }
 }
 
 void pin3_Scan(void)  //光氢开关
 {
-        if(key2==ON)
+
+        if(key2==1)
         {
-        Ht1621_on_disp(17);   //T2 光氢 
-                device_work_data.para_type.pht_work_state = 1;
+          // Ht1621_on_disp(17);   //T2 光氢 
+              device_work_data.para_type.pht_work_state = 1;
 
         }
-	else if((count1==ON)&&(key4 !=0))
+	else if((count1==1)&&(key4 !=0))
 	 {
-	 Ht1621_on_disp(17);   //T2 光氢 
-	         device_work_data.para_type.pht_work_state = 1;
+	     //Ht1621_on_disp(17);   //T2 光氢 
+	       device_work_data.para_type.pht_work_state = 1;
 
 	 }
         else
         {
-        Ht1621_off_disp(17);    //T2 光氢
-                device_work_data.para_type.pht_work_state = 0;
+           //Ht1621_off_disp(17);    //T2 光氢
+              device_work_data.para_type.pht_work_state = 0;
 
         }
 }
@@ -1003,29 +1018,30 @@ void pin4_Scan(void) //风速
 {
         if((count1==1)&&(key4 !=0))
         {
-        Ht1621_on_disp(14);   //S3 风速中
+        //Ht1621_on_disp(14);   //S3 风速中
         device_work_data.para_type.wind_speed_state = 2;
         }	
         else if(count==0)
         {
-        Ht1621_on_disp(13);    //S3 风速低  
+        //Ht1621_on_disp(13);    //S3 风速低  
         device_work_data.para_type.wind_speed_state = 1;
         }		
        else if(count==1)
         {
-        Ht1621_on_disp(14);   //S3 风速中
+        //Ht1621_on_disp(14);   //S3 风速中
         device_work_data.para_type.wind_speed_state = 2;
         }
        else if(count==2)
         { 
-        Ht1621_on_disp(15);    //S3 风速高
+        //Ht1621_on_disp(15);    //S3 风速高
         device_work_data.para_type.wind_speed_state = 3;
+        
         }
          else
         {
-         Ht1621_off_disp(13);    //S3 风速低
-         Ht1621_off_disp(14);   //S3 风速中
-         Ht1621_off_disp(15);    //S3 风速高
+        // Ht1621_off_disp(13);    //S3 风速低
+         //Ht1621_off_disp(14);   //S3 风速中
+        // Ht1621_off_disp(15);    //S3 风速高
          device_work_data.para_type.wind_speed_state = 0;
         }
 		
@@ -1035,16 +1051,16 @@ void pin5_Scan(void) //智能/手动/定时
 {
         if(count1==0)
         {
-         Ht1621_off_disp(3);   //T7  关智能
-         Ht1621_off_disp(1);    //T9 关定时
-         Ht1621_on_disp(2);   //T8 开手动
-         device_work_data.para_type.device_mode = 0;
+        // Ht1621_off_disp(3);   //T7  关智能
+        // Ht1621_off_disp(1);    //T9 关定时
+         //Ht1621_on_disp(2);   //T8 开手动
+        device_work_data.para_type.device_mode = 2;
         }
         if(count1==1)
         {
-        Ht1621_off_disp(2);    //T8 关手动
-        Ht1621_on_disp(3);    //T7  开智能
-        Ht1621_off_disp(1);    //T9 关定时
+       // Ht1621_off_disp(2);    //T8 关手动
+        //Ht1621_on_disp(3);    //T7  开智能
+        //Ht1621_off_disp(1);    //T9 关定时
         device_work_data.para_type.device_mode = 1;
 
         }
@@ -1055,16 +1071,13 @@ void pin5_Scan(void) //智能/手动/定时
 	  Ht1621_off_disp(3);   //T7  关智能
         Ht1621_on_disp(1);    //T9 开定时
         //device_work_data.para_type.device_mode = 2;
-
-		
-
-	//Ht1621_off_disp(16);    //T1 静电 
-       //Ht1621_off_disp(17);   //T2 光氢
+        
+	
         }
 		
         if(key5 ==0)
         { 
-          reset_wifi();
+         reset_wifi();
          //device_work_data.para_type.fault_state |= 0x20;
         }
         else
@@ -1128,6 +1141,110 @@ void Ht1621Display(void)  //显示
      Ht1621_on_disp(6);   //S2 定时H图标
      Ht1621DisplayState(DIS_BUF,Ht1621Tab3,0,12);     //位置显示
 }
+
+
+
+void device_work_mode_check(void)
+{
+
+	u8 tmp,tmp1,tmp2,tmp3;
+	
+	//tmp = device_work_data.para_type.fault_state;
+        tmp =device_work_data.para_type.device_mode;          //模式
+        tmp1 =device_work_data.para_type.wind_speed_state;  //风速
+        tmp2 =device_work_data.para_type.high_pressur_state;  //静电 
+	tmp3 =device_work_data.para_type.pht_work_state;        //光氢
+      
+       switch(tmp)
+    	{
+    	case 0x00:
+	break;
+
+	case 0x01:
+        Ht1621_off_disp(2);    //T8 关手动
+        Ht1621_on_disp(3);    //T7  开智能
+        Ht1621_off_disp(1);    //T9 关定时
+        //device_work_data.para_type.device_mode = 1;
+	count1=1;	
+	break;
+	case 0x02:
+	 Ht1621_off_disp(3);   //T7  关智能
+        Ht1621_off_disp(1);    //T9 关定时
+        Ht1621_on_disp(2);   //T8 开手动
+        // device_work_data.para_type.device_mode = 2;	
+	count1=0;
+	break;
+	default:  
+	break;
+    	}
+
+     
+      switch(tmp1)
+      {
+    	case 0x00:
+        Ht1621_off_disp(13);    //S3 风速低
+        Ht1621_off_disp(14);   //S3 风速中
+        Ht1621_off_disp(15);    //S3 风速高
+        //device_work_data.para_type.wind_speed_state = 0;				
+	break;
+	case 0x01:
+        Ht1621_on_disp(13);    //S3 风速低  
+      // device_work_data.para_type.wind_speed_state = 1;
+         count=0;
+	break;
+	case 0x02:
+        Ht1621_on_disp(14);   //S3 风速中
+        //device_work_data.para_type.wind_speed_state = 2;
+	count=1;
+	break;
+	case 0x03:
+        Ht1621_on_disp(15);    //S3 风速高
+       // device_work_data.para_type.wind_speed_state = 3;
+	count=2;
+	break;	
+	default:  	
+	break;
+
+      	}
+
+      switch(tmp2)
+      {
+    	case 0x00:
+       Ht1621_off_disp(16);    //T1 静电
+        key1= 2;			
+	break;
+	case 0x01:
+         Ht1621_on_disp(16);    //T1 静电 
+         key1=1;
+	break;
+	default:  
+	break;
+      	}
+
+      switch(tmp3)
+      {
+    	case 0x00:
+         Ht1621_off_disp(17);   //T2 光氢 
+       key2 = 2;			
+	break;
+	case 0x01:
+         Ht1621_on_disp(17);   //T2 光氢 
+        key2=1;
+	break;
+	default:  
+	break;
+      	}
+ 
+   
+     
+
+}
+
+
+
+
+
+
 
 /*********************************************END OF FILE**********************/
 

@@ -6,6 +6,8 @@
 #ifndef DEVICE_WORK_TYPE_MACRO
 #define DEVICE_WORK_TYPE_MACRO
 
+
+
 typedef union __DEVICE_WORK_TYPE {
     struct __para_type
     {
@@ -33,7 +35,9 @@ typedef union __DEVICE_WORK_TYPE {
 
 } DEVICE_WORK_TYPE;
 
+
 #endif
+
 
 
 extern DEVICE_WORK_TYPE device_work_data;

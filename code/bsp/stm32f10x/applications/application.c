@@ -141,7 +141,16 @@ void set_dc_motor(void)
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 
 
-	set_dc_motor_speed(device_work_data.para_type.wind_speed_state);
+	if(device_work_data.para_type.device_power_state==0)
+	{
+		
+		set_dc_motor_speed(0);
+	}
+	else
+	{
+		set_dc_motor_speed(device_work_data.para_type.wind_speed_state);
+
+	}
 
     ucMasterRTURcvBuf[0] = 0;
 	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,5,RT_WAITING_FOREVER);
@@ -170,7 +179,9 @@ void set_dc_motor(void)
 void get_display_board_data(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+	u8 i;
 
+	
     rs485_send_buf_not_modbus[0] = 0xF1;
     rs485_send_buf_not_modbus[1] = 0xF1;
     rs485_send_buf_not_modbus[2] = 0x01;
@@ -185,6 +196,16 @@ void get_display_board_data(void)
 	{
 		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
         {
+        
+    		for(i=0;i<sizeof(struct __para_type);i++)
+			{
+				
+				device_work_data_bak.device_data[i] = device_work_data.device_data[i];
+				
+				
+			}
+
+			
             device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
             device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
             device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
@@ -194,13 +215,30 @@ void get_display_board_data(void)
             //device_work_data.para_type.fault_state = ucMasterRTURcvBuf[9];
 
 			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
+
+			airclean_power_onoff(device_work_data.para_type.device_power_state);
+
+			
 			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
 			{
 				
 				wifi_factory_set();
 
 			}
-			device_sys_para_save();
+
+			for(i=0;i<6;i++)
+			{
+				
+				if(device_work_data_bak.device_data[i] != device_work_data.device_data[i])
+				{
+
+					device_sys_para_save();
+					break;
+				}
+				
+				
+			}
+				
         }      
 	}
 }
@@ -342,7 +380,7 @@ rt_mutex_t modbus_mutex = RT_NULL;
 //备    注：Editor：  
 //******************************************************************
 
-#if 0
+#if 1
 void thread_entry_SysMonitor(void* parameter)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
@@ -350,18 +388,27 @@ void thread_entry_SysMonitor(void* parameter)
 
 	u8 mstate = 0;
 
-    u8 cnttmp = 0;
+	u8 cnttmp = 0;
 
 	u8 mystate = 0;
 	
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND*2);
+		rt_thread_delay(RT_TICK_PER_SECOND/20);
 
+		
+		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+		set_dc_motor();//1s
+		
+		rt_mutex_release(modbus_mutex);
 
 		for(u8 i=11;i<=15;i++)//1s
 		{
+
+		
+			rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+			
 			errorCode = eMBMasterReqReadHoldingRegister(i,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
@@ -397,17 +444,21 @@ void thread_entry_SysMonitor(void* parameter)
 				}		  
 				
 
+				
+				//rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+				
+				set_display_board_data(); //100ms
+				//rt_mutex_release(modbus_mutex);
+
 			}
 
+			rt_mutex_release(modbus_mutex);
 
-
-
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
+			rt_thread_delay(RT_TICK_PER_SECOND/10);
 		
-        
-	}
+		}
 
-		
+#if 0
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
@@ -417,11 +468,15 @@ void thread_entry_SysMonitor(void* parameter)
 					device_work_data.para_type.house1_pm2_5 = sw16(usMRegHoldBuf[0][1]);
 
 					
-			rt_thread_delay(RT_TICK_PER_SECOND/5);
+
 		}
+
+#endif
+
+		
+	}
 }
 
-}
 #else
 void thread_entry_SysMonitor(void* parameter)
 {
@@ -553,6 +608,45 @@ void thread_entry_SysMonitor(void* parameter)
 
 
 
+void thread_entry_com_displayboard(void* parameter)
+{
+
+	u8 mstate = 0;
+
+    u8 cnttmp = 0;
+
+	u8 mystate = 0;
+	
+	while (1)
+	{
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
+
+		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+
+		if(mystate)
+		{
+	       // set_display_board_data(); //100ms
+			mystate=0;
+
+		}
+		else
+		{
+			mystate=1;
+
+			get_display_board_data(); //1s
+
+		}
+		
+		rt_mutex_release(modbus_mutex);
+
+	}
+}
+
+
+
+
+
 //************************ Modbus主机轮训线程***************************
 //函数定义: void thread_entry_ModbusMasterPoll(void* parameter)
 //入口参数：无
@@ -610,7 +704,7 @@ void ac_esd_set(u8 mode)
 }
 
 
-//0,off; 1,  ;2,  ;
+//0,off; 1,  ;2,  ;3,speed
 void ac_ac_motor_set(u8 mode)
 {
 	if(mode == 1)
@@ -676,12 +770,25 @@ void ac_workmode_set(u8 mode)
     
 }
 
+DEVICE_WORK_TYPE device_work_data_bak;
 
 u8 set_device_work_mode(u8 type,u8 data)
 {
 
-	if(device_work_data.para_type.device_mode == 1)
-		return 1;
+	
+	u8 i;
+
+	for(i=0;i<sizeof(struct __para_type);i++)
+	{
+		
+		device_work_data_bak.device_data[i] = device_work_data.device_data[i];
+		
+		
+	}
+
+	
+//	if(device_work_data.para_type.device_mode == 1)
+//		return 1;
 
     switch(type)
         {
@@ -744,7 +851,18 @@ u8 set_device_work_mode(u8 type,u8 data)
 	rt_mutex_release(modbus_mutex);
 
 
-	device_sys_para_save();
+	for(i=0;i<6;i++)
+	{
+		
+		if(device_work_data_bak.device_data[i] != device_work_data.device_data[i])
+		{
+
+			device_sys_para_save();
+			break;
+		}
+		
+		
+	}
 	
 	return 1;
 }
@@ -1218,7 +1336,7 @@ void airclean_work_auto_handle(void)
 //		}
 		
 LABEL_AUTO_AC_CONTINUE:
-       // rt_thread_delay(RT_TICK_PER_SECOND/20);
+       rt_thread_delay(RT_TICK_PER_SECOND/20);
     }
 
 }
@@ -1349,7 +1467,7 @@ void airclean_power_onoff(u8 mode)
     {//off
         ac_esd_set(0);
         ac_pht_set(0);
-        ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
+        ac_ac_motor_set(0);
     }
     
 
@@ -1386,7 +1504,7 @@ void fault_set_bit(u8 fault_type,u8 val)
 }
 
 
-
+u8 fault_state_pre = 0xff;
 void rt_check_ex_device_thread_entry(void* parameter)
 {
 
@@ -1409,7 +1527,18 @@ void rt_check_ex_device_thread_entry(void* parameter)
 		
 			fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
 
-		
+
+		if(fault_state_pre==0xff || fault_state_pre!= device_work_data.para_type.fault_state)
+		{
+			if(device_work_data.para_type.fault_state)
+			{
+				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+				set_display_board_data(); //100ms
+				rt_mutex_release(modbus_mutex);
+
+			}
+			fault_state_pre = device_work_data.para_type.fault_state;
+		}
 		rt_thread_delay(RT_TICK_PER_SECOND);
 
 	}
@@ -1452,6 +1581,12 @@ void rt_main_thread_entry(void* parameter)
         rt_thread_startup(init_thread);
 			
 
+    init_thread = rt_thread_create("com_disp",
+                                   thread_entry_com_displayboard, RT_NULL,
+                                   512, 11, 50);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+			
 
 
 	rt_thread_delay(RT_TICK_PER_SECOND);
@@ -1521,7 +1656,7 @@ void thread_entry_power_monitor (void* parameter)
 
         //if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60)) // hour
         
-        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*10) && (device_work_data.para_type.timing_state))// half minute
+        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state))// half minute
         {
         	if(device_work_data.para_type.timing_state)
             {

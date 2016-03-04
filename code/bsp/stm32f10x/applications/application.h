@@ -5,6 +5,7 @@
 extern void airclean_power_onoff(u8 mode);
 extern u8 set_device_work_mode(u8 type,u8 data);
 
+extern DEVICE_WORK_TYPE device_work_data_bak;
 
 
 #define FlashSize_KB    (256)
