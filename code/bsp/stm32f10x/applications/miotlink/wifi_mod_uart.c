@@ -178,6 +178,19 @@ void device_state_init(void)
 	
 }
 
+void device_sys_para_get(void)
+{
+	u8 sys_para_flag = 0;
+
+	SPI_FLASH_BufferRead(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
+
+	if(sys_para_flag == 0x86)
+		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+
+
+	device_work_data.para_type.fault_state = 0;
+
+}
 
 void device_sys_para_save(void)
 {

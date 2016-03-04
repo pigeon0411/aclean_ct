@@ -62,3 +62,9 @@ struct _uart_dev_my
 extern 	void wifi_factory_set(void);
 extern u8 device_power_state_pre;
 extern void device_sys_para_save(void);
+
+extern void device_sys_para_get(void);
+
+
+
+

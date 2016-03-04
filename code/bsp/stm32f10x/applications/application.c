@@ -128,7 +128,7 @@ u8 rs485_send_buf_not_modbus[50];
 
 void set_dc_motor_speed(u8 speed)
 {
-	device_work_data.para_type.wind_speed_state = speed;
+	//device_work_data.para_type.wind_speed_state = speed;
 
     rs485_send_buf_not_modbus[0] = 0xBC;
     rs485_send_buf_not_modbus[1] = 0x07;
@@ -185,7 +185,7 @@ void get_display_board_data(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 	u8 i;
-
+	static u8 device_power_state_bak = 0xff;
 	
     rs485_send_buf_not_modbus[0] = 0xF1;
     rs485_send_buf_not_modbus[1] = 0xF1;
@@ -210,8 +210,9 @@ void get_display_board_data(void)
 				
 			}
 
+
 			
-            device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
+            //device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
             device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
             device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
             device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
@@ -221,8 +222,9 @@ void get_display_board_data(void)
 
 			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
 
-			if(device_work_data.para_type.device_mode == 2)
-				airclean_power_onoff(device_work_data.para_type.device_power_state);
+//			if(device_work_data.para_type.device_mode == 2)
+//				airclean_power_onoff(device_work_data.para_type.device_power_state);
+
 
 			
 			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
@@ -244,8 +246,52 @@ void get_display_board_data(void)
 				
 				
 			}
+
+
+					
+
 				
         }      
+		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[32] == 0x7e)
+		{
+
+			device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
+			if(device_power_state_bak == 0xff)
+			{
+
+				device_power_state_bak = ucMasterRTURcvBuf[4];	
+
+				if(ucMasterRTURcvBuf[4])
+				{
+	
+					airclean_power_onoff(ucMasterRTURcvBuf[4]);
+				}
+				else
+					{
+
+					airclean_power_onoff(0);
+					return;
+				}
+				
+				
+			}
+			else
+			{
+
+				if(ucMasterRTURcvBuf[4] != device_power_state_bak)
+				{
+					device_power_state_bak = ucMasterRTURcvBuf[4];
+					
+					airclean_power_onoff(ucMasterRTURcvBuf[4]);
+
+					if(ucMasterRTURcvBuf[4] == 0)
+						return;
+				}
+
+
+				device_power_state_bak = ucMasterRTURcvBuf[4];
+			}
+		}
 	}
 }
 
@@ -454,7 +500,7 @@ void thread_entry_SysMonitor(void* parameter)
 				
 				//rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 				
-				set_display_board_data(); //100ms
+				//set_display_board_data(); //100ms
 				//rt_mutex_release(modbus_mutex);
 
 			}
@@ -710,7 +756,7 @@ void ac_esd_set(u8 mode)
 
 
 	
-	device_work_data.para_type.high_pressur_state = mode;
+	//device_work_data.para_type.high_pressur_state = mode;
 }
 
 
@@ -750,7 +796,7 @@ void ac_ac_motor_set(u8 mode)
 		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
 	}
 
-device_work_data.para_type.wind_speed_state = mode;
+//device_work_data.para_type.wind_speed_state = mode;
 
 }
 
@@ -764,7 +810,7 @@ void ac_pht_set(u8 mode)
 	else
 		GPIO_ResetBits(GPIOB,GPIO_Pin_15);
 
-	device_work_data.para_type.pht_work_state = mode;
+	//device_work_data.para_type.pht_work_state = mode;
 
 }
 
@@ -1700,9 +1746,12 @@ void airclean_power_onoff(u8 mode)
 {
     if(mode>1)
         return;
+
     
     if(mode)
     {//on
+
+		device_sys_para_get();
         ac_esd_set(device_work_data.para_type.high_pressur_state);
         ac_pht_set(device_work_data.para_type.pht_work_state);
         ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
@@ -1710,6 +1759,8 @@ void airclean_power_onoff(u8 mode)
     }
     else
     {//off
+
+		device_sys_para_save();
         ac_esd_set(0);
         ac_pht_set(0);
         ac_ac_motor_set(0);
