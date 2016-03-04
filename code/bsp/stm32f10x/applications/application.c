@@ -118,6 +118,9 @@ extern DEVICE_WORK_TYPE device_work_data;
       (((short)(x) &(short)0xff00U) >> 8)))
 
 
+#define	exchange_16bit_hi_lo(x)		sw16(x)
+
+
 extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut );
 
 u8 rs485_send_buf_not_modbus[50];
@@ -125,6 +128,8 @@ u8 rs485_send_buf_not_modbus[50];
 
 void set_dc_motor_speed(u8 speed)
 {
+	device_work_data.para_type.wind_speed_state = speed;
+
     rs485_send_buf_not_modbus[0] = 0xBC;
     rs485_send_buf_not_modbus[1] = 0x07;
     rs485_send_buf_not_modbus[2] = 0x01;
@@ -216,7 +221,8 @@ void get_display_board_data(void)
 
 			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
 
-			airclean_power_onoff(device_work_data.para_type.device_power_state);
+			if(device_work_data.para_type.device_mode == 2)
+				airclean_power_onoff(device_work_data.para_type.device_power_state);
 
 			
 			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
@@ -371,6 +377,7 @@ void FLASH_Program_read_para(void)
 }
 
 rt_mutex_t modbus_mutex = RT_NULL;
+rt_mutex_t motor_mutex = RT_NULL;
 
 
 //***************************系统监控线程***************************
@@ -701,6 +708,9 @@ void ac_esd_set(u8 mode)
 	else
 		GPIO_ResetBits(GPIOB,GPIO_Pin_1);
 
+
+	
+	device_work_data.para_type.high_pressur_state = mode;
 }
 
 
@@ -739,6 +749,9 @@ void ac_ac_motor_set(u8 mode)
 		
 		GPIO_ResetBits(GPIOB,GPIO_Pin_13);
 	}
+
+device_work_data.para_type.wind_speed_state = mode;
+
 }
 
 //0,off; 1,on
@@ -870,9 +883,19 @@ u8 set_device_work_mode(u8 type,u8 data)
 //
 void airclean_motor_set(u8 mode)
 {
-    ac_ac_motor_set(mode);
-    
+	rt_mutex_take(motor_mutex,RT_WAITING_FOREVER);	
+	device_work_data.para_type.wind_speed_state = mode;
 
+	ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
+    
+	
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+	
+	set_dc_motor_speed(device_work_data.para_type.wind_speed_state); //100ms
+	rt_mutex_release(modbus_mutex);
+
+	rt_mutex_release(motor_mutex);
+	
 }
 
 u8 fault_get_bit(u8 fault_type) 
@@ -893,8 +916,8 @@ u8 fault_get_bit(u8 fault_type)
 #define PM2_5_LEVEL1_MAX    55
 #define CO2_LEVEL1_MAX      730
 
-#define PM2_5_LEVEL2_MAX    96
-#define CO2_LEVEL2_MAX      1300
+#define PM2_5_LEVEL2_MAX    (96-5)
+#define CO2_LEVEL2_MAX      (1300-10)
 
 
 
@@ -1120,6 +1143,160 @@ LABEL_AUTO_AC_CONTINUE:
 }
 
 
+
+#define	HOUSE_CO2_NUM_LINK(ID)	device_work_data.para_type.house##ID##_co2
+#define	HOUSE_PM25_NUM_LINK(ID)	device_work_data.para_type.house##ID##_pm2_5
+
+
+#define	byte_2_to_short(x,y)	((short)(\
+      (((short)(x) &(short)0x00ffU) << 8) |\
+      (((short)(y) &(short)0x00ffU))))
+
+
+
+#define	HOUSE_DATA_START		6
+#if 1
+void airclean_work_auto_handle(void)
+{
+
+	u8 i;
+	u16 co2_tmp,pm25_tmp;
+	
+
+
+
+	
+	if(device_work_data.para_type.device_power_state)
+    {
+        if(device_work_data.para_type.device_mode == 1)
+        {//auto
+
+
+ //////////////////  1
+			 for(i = 0;i<5;i++)
+			 {
+				 pm25_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4]),(device_work_data.device_data[HOUSE_DATA_START+i*4+1]));
+				 co2_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4+2]),(device_work_data.device_data[HOUSE_DATA_START+i*4+3]));
+			 
+				 if(co2_tmp!=0 ||pm25_tmp!=0)
+				 {
+					 if(pm25_tmp > 134 || co2_tmp > 2500)
+					 {
+						 ac_esd_set(1);
+						 ac_pht_set(1);
+						 airclean_motor_set(3);
+						 goto LABEL_AUTO_AC_CONTINUE;
+					 }
+			 
+				 }
+				 
+			 
+			 }
+
+ //////////////////  2
+			 for(i = 0;i<5;i++)
+			 {
+				 pm25_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4]),(device_work_data.device_data[HOUSE_DATA_START+i*4+1]));
+				 co2_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4+2]),(device_work_data.device_data[HOUSE_DATA_START+i*4+3]));
+			 
+				 if(co2_tmp!=0 ||pm25_tmp!=0)
+				 {
+					 if(pm25_tmp > 96 || co2_tmp > 1300)
+					 {
+						 ac_esd_set(1);
+						 ac_pht_set(1);
+						 airclean_motor_set(2);
+						 goto LABEL_AUTO_AC_CONTINUE;
+					 }
+			 
+				 }
+				 
+			 
+			 }
+
+
+ ///////////  3
+
+			for(i = 0;i<5;i++)
+			{
+				pm25_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4]),(device_work_data.device_data[HOUSE_DATA_START+i*4+1]));
+				co2_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4+2]),(device_work_data.device_data[HOUSE_DATA_START+i*4+3]));
+
+				if(co2_tmp!=0 ||pm25_tmp!=0)
+				{
+					if(pm25_tmp < PM2_5_LEVEL1_MAX && co2_tmp < CO2_LEVEL1_MAX)
+		            {
+						ac_esd_set(0);
+						ac_pht_set(0);
+						airclean_motor_set(0);
+						goto LABEL_AUTO_AC_CONTINUE;
+		            }
+
+				}
+				
+
+			}
+				
+
+ /////////// 4
+ 
+			for(i = 0;i<5;i++)
+			{
+				pm25_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4]),(device_work_data.device_data[HOUSE_DATA_START+i*4+1]));
+				co2_tmp = byte_2_to_short((device_work_data.device_data[HOUSE_DATA_START+i*4+2]),(device_work_data.device_data[HOUSE_DATA_START+i*4+3]));
+
+				if(co2_tmp!=0 ||pm25_tmp!=0)
+				{
+					if(pm25_tmp < PM2_5_LEVEL2_MAX && co2_tmp < CO2_LEVEL2_MAX)
+		            {
+						ac_esd_set(1);
+						ac_pht_set(1);
+						airclean_motor_set(1);
+						goto LABEL_AUTO_AC_CONTINUE;
+		            }
+
+				}
+				
+
+			}
+		
+            
+        }
+        else if(device_work_data.para_type.device_mode == 2)
+        {//manual
+        
+			ac_esd_set(device_work_data.para_type.high_pressur_state);
+			ac_pht_set(device_work_data.para_type.pht_work_state);
+			airclean_motor_set(device_work_data.para_type.wind_speed_state);
+	            
+
+        }
+		else if(device_work_data.para_type.device_mode == 0)
+        {//manual
+
+			
+                ac_esd_set(device_work_data.para_type.high_pressur_state);
+                ac_pht_set(device_work_data.para_type.pht_work_state);
+                airclean_motor_set(device_work_data.para_type.wind_speed_state);
+          
+        }
+
+    
+//		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
+//		{
+//			
+//			wifi_factory_set();
+//			fault_set_bit(FAULT_RESET_WIFI_BIT,0);
+//		}
+		
+LABEL_AUTO_AC_CONTINUE:
+       rt_thread_delay(RT_TICK_PER_SECOND/20);
+    }
+
+}
+
+
+#else
 void airclean_work_auto_handle(void)
 {
 
@@ -1127,40 +1304,67 @@ void airclean_work_auto_handle(void)
     {
         if(device_work_data.para_type.device_mode == 1)
         {//auto
-            if(device_work_data.para_type.house1_pm2_5 > 96 || 
-                device_work_data.para_type.house1_co2 > 1300)
+
+#if 0
+		if(HOUSE_CO2_NUM_LINK(1) == 0 && HOUSE_PM25_NUM_LINK(1)==0)
+				goto LABEL_AUTO_AC_CONTINUE;
+
+
+			if(HOUSE_CO2_NUM_LINK(2) == 0 && HOUSE_PM25_NUM_LINK(2)==0)
+				goto LABEL_AUTO_AC_CONTINUE;
+
+
+			if(HOUSE_CO2_NUM_LINK(3) == 0 && HOUSE_PM25_NUM_LINK(3)==0)
+				goto LABEL_AUTO_AC_CONTINUE;
+
+
+			if(HOUSE_CO2_NUM_LINK(4) == 0 && HOUSE_PM25_NUM_LINK(4)==0)
+				goto LABEL_AUTO_AC_CONTINUE;
+
+
+			if(HOUSE_CO2_NUM_LINK(5) == 0 && HOUSE_PM25_NUM_LINK(5)==0)
+				goto LABEL_AUTO_AC_CONTINUE;
+
+
+
+#endif			
+
+
+		
+            if(exchange_16bit_hi_lo(device_work_data.para_type.house1_pm2_5) > 96 || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house1_co2) > 1300)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house2_pm2_5 > 96 || 
-                device_work_data.para_type.house2_co2 > 1300)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house2_pm2_5) > 96 || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house2_co2) > 1300)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house3_pm2_5 > 96 || 
-                device_work_data.para_type.house3_co2 > 1300)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house3_pm2_5) > 96 || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house3_co2) > 1300)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house4_pm2_5 > 96 || 
-                device_work_data.para_type.house4_co2 > 1300)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house4_pm2_5) > 96 || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house4_co2) > 1300)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house5_pm2_5 > 96 || 
-                device_work_data.para_type.house5_co2 > 1300)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house5_pm2_5) > 96 || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house5_co2) > 1300)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
@@ -1170,40 +1374,40 @@ void airclean_work_auto_handle(void)
 
 
 ///////////  2
-            if(device_work_data.para_type.house1_pm2_5 > PM2_5_LEVEL2_MIN || 
-                device_work_data.para_type.house1_co2 > CO2_LEVEL2_MIN)
+            if(exchange_16bit_hi_lo(device_work_data.para_type.house1_pm2_5) > PM2_5_LEVEL2_MIN || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house1_co2) > CO2_LEVEL2_MIN)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(1);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house2_pm2_5 > PM2_5_LEVEL2_MIN || 
-                device_work_data.para_type.house2_co2 > CO2_LEVEL2_MIN)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house2_pm2_5) > PM2_5_LEVEL2_MIN || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house2_co2) > CO2_LEVEL2_MIN)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(1);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house3_pm2_5 > PM2_5_LEVEL2_MIN || 
-                device_work_data.para_type.house3_co2 > CO2_LEVEL2_MIN)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house3_pm2_5) > PM2_5_LEVEL2_MIN || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house3_co2) > CO2_LEVEL2_MIN)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(1);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house4_pm2_5 > PM2_5_LEVEL2_MIN || 
-                device_work_data.para_type.house4_co2 > CO2_LEVEL2_MIN)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house4_pm2_5) > PM2_5_LEVEL2_MIN || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house4_co2) > CO2_LEVEL2_MIN)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(1);
                 goto LABEL_AUTO_AC_CONTINUE;
             }
-            else if(device_work_data.para_type.house5_pm2_5 > PM2_5_LEVEL2_MIN || 
-                device_work_data.para_type.house5_co2 > CO2_LEVEL2_MIN)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house5_pm2_5) > PM2_5_LEVEL2_MIN || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house5_co2) > CO2_LEVEL2_MIN)
             {
                 ac_esd_set(1);
                 ac_pht_set(1);
@@ -1212,95 +1416,130 @@ void airclean_work_auto_handle(void)
             }
 
  ///////////  3
-            if(device_work_data.para_type.house1_pm2_5 < PM2_5_LEVEL1_MAX || 
-                device_work_data.para_type.house1_co2 < CO2_LEVEL1_MAX)
+            if(exchange_16bit_hi_lo(device_work_data.para_type.house1_pm2_5) < PM2_5_LEVEL1_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house1_co2) < CO2_LEVEL1_MAX)
             {
+
+			
+				if(HOUSE_CO2_NUM_LINK(1) != 0 || HOUSE_PM25_NUM_LINK(1)!=0)
+				{ 
+					ac_esd_set(0);
+					ac_pht_set(0);
+					airclean_motor_set(0);
+					goto LABEL_AUTO_AC_CONTINUE;
+				}
+            }
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house2_pm2_5) < PM2_5_LEVEL1_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house2_co2) < CO2_LEVEL1_MAX)
+            {
+
+							if(HOUSE_CO2_NUM_LINK(2) != 0 || HOUSE_PM25_NUM_LINK(2)!=0)
+				{ 
                 ac_esd_set(0);
                 ac_pht_set(0);
                 airclean_motor_set(0);
                 goto LABEL_AUTO_AC_CONTINUE;
+								}
             }
-            else if(device_work_data.para_type.house2_pm2_5 < PM2_5_LEVEL1_MAX || 
-                device_work_data.para_type.house2_co2 < CO2_LEVEL1_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house3_pm2_5) < PM2_5_LEVEL1_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house3_co2) < CO2_LEVEL1_MAX)
             {
+
+				if(HOUSE_CO2_NUM_LINK(3) != 0 || HOUSE_PM25_NUM_LINK(3)!=0)
+				{ 
                 ac_esd_set(0);
                 ac_pht_set(0);
                 airclean_motor_set(0);
                 goto LABEL_AUTO_AC_CONTINUE;
+
+									}
             }
-            else if(device_work_data.para_type.house3_pm2_5 < PM2_5_LEVEL1_MAX || 
-                device_work_data.para_type.house3_co2 < CO2_LEVEL1_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house4_pm2_5) <PM2_5_LEVEL1_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house4_co2) <CO2_LEVEL1_MAX)
             {
+
+							if(HOUSE_CO2_NUM_LINK(4) != 0 || HOUSE_PM25_NUM_LINK(4)!=0)
+				{ 
                 ac_esd_set(0);
                 ac_pht_set(0);
                 airclean_motor_set(0);
                 goto LABEL_AUTO_AC_CONTINUE;
+
+								}
             }
-            else if(device_work_data.para_type.house4_pm2_5 <PM2_5_LEVEL1_MAX || 
-                device_work_data.para_type.house4_co2 <CO2_LEVEL1_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house5_pm2_5) <PM2_5_LEVEL1_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house5_co2) <CO2_LEVEL1_MAX)
             {
-                ac_esd_set(0);
-                ac_pht_set(0);
-                airclean_motor_set(0);
-                goto LABEL_AUTO_AC_CONTINUE;
-            }
-            else if(device_work_data.para_type.house5_pm2_5 <PM2_5_LEVEL1_MAX || 
-                device_work_data.para_type.house5_co2 <CO2_LEVEL1_MAX)
-            {
-                ac_esd_set(0);
+
+				if(HOUSE_CO2_NUM_LINK(5) != 0 || HOUSE_PM25_NUM_LINK(5)!=0)
+				{ 
+
+				ac_esd_set(0);
                 ac_pht_set(0);
                 airclean_motor_set(0);
 
                goto LABEL_AUTO_AC_CONTINUE;
+					}
             }
 
  /////////// 4
-            if(device_work_data.para_type.house1_pm2_5 < PM2_5_LEVEL2_MAX || 
-                device_work_data.para_type.house1_co2 < CO2_LEVEL2_MAX)
+            if(exchange_16bit_hi_lo(device_work_data.para_type.house1_pm2_5) < PM2_5_LEVEL2_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house1_co2) < CO2_LEVEL2_MAX)
             {
+
+							if(HOUSE_CO2_NUM_LINK(1) != 0 || HOUSE_PM25_NUM_LINK(1)!=0)
+				{ 
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
-               goto LABEL_AUTO_AC_CONTINUE;
+               goto LABEL_AUTO_AC_CONTINUE;}
 
             }
-            else if(device_work_data.para_type.house2_pm2_5 < PM2_5_LEVEL2_MAX || 
-                device_work_data.para_type.house2_co2 < CO2_LEVEL2_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house2_pm2_5) < PM2_5_LEVEL2_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house2_co2) < CO2_LEVEL2_MAX)
             {
+            				if(HOUSE_CO2_NUM_LINK(2) != 0 || HOUSE_PM25_NUM_LINK(2)!=0)
+				{ 
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
 
-                               goto LABEL_AUTO_AC_CONTINUE;
+                               goto LABEL_AUTO_AC_CONTINUE;}
 
             }
-            else if(device_work_data.para_type.house3_pm2_5 < PM2_5_LEVEL2_MAX || 
-                device_work_data.para_type.house3_co2 < CO2_LEVEL2_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house3_pm2_5) < PM2_5_LEVEL2_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house3_co2) < CO2_LEVEL2_MAX)
             {
+            				if(HOUSE_CO2_NUM_LINK(3) != 0 || HOUSE_PM25_NUM_LINK(3)!=0)
+				{ 
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
 
-                goto LABEL_AUTO_AC_CONTINUE;
+                goto LABEL_AUTO_AC_CONTINUE;}
             }
-            else if(device_work_data.para_type.house4_pm2_5 <PM2_5_LEVEL2_MAX || 
-                device_work_data.para_type.house4_co2 <CO2_LEVEL2_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house4_pm2_5) <PM2_5_LEVEL2_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house4_co2) <CO2_LEVEL2_MAX)
             {
+            				if(HOUSE_CO2_NUM_LINK(4) != 0 || HOUSE_PM25_NUM_LINK(4)!=0)
+				{ 
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
 
-               goto LABEL_AUTO_AC_CONTINUE;
+               goto LABEL_AUTO_AC_CONTINUE;}
 
             }
-            else if(device_work_data.para_type.house5_pm2_5 <PM2_5_LEVEL2_MAX || 
-                device_work_data.para_type.house5_co2 <CO2_LEVEL2_MAX)
+            else if(exchange_16bit_hi_lo(device_work_data.para_type.house5_pm2_5) <PM2_5_LEVEL2_MAX || 
+                exchange_16bit_hi_lo(device_work_data.para_type.house5_co2) <CO2_LEVEL2_MAX)
             {
+            				if(HOUSE_CO2_NUM_LINK(5) != 0 || HOUSE_PM25_NUM_LINK(5)!=0)
+				{ 
                 ac_esd_set(1);
                 ac_pht_set(1);
                 airclean_motor_set(2);
 
-               goto LABEL_AUTO_AC_CONTINUE;
+               goto LABEL_AUTO_AC_CONTINUE;}
             }
 
 
@@ -1341,7 +1580,7 @@ LABEL_AUTO_AC_CONTINUE:
 
 }
 
-
+#endif
 
 void airclean_out_pin_init(void)
 {
@@ -1702,6 +1941,7 @@ int rt_application_init(void)
 
 
 	modbus_mutex = rt_mutex_create("mdbusmut",RT_IPC_FLAG_FIFO);
+	motor_mutex = rt_mutex_create("motor_set",RT_IPC_FLAG_FIFO);
 
 
 	init_thread = rt_thread_create("mY",
