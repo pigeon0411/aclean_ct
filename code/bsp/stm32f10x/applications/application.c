@@ -620,13 +620,13 @@ void thread_entry_com_displayboard(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 
 		if(mystate)
 		{
-	       // set_display_board_data(); //100ms
+	        set_display_board_data(); //100ms
 			mystate=0;
 
 		}
@@ -1532,9 +1532,9 @@ void rt_check_ex_device_thread_entry(void* parameter)
 		{
 			if(device_work_data.para_type.fault_state)
 			{
-				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-				set_display_board_data(); //100ms
-				rt_mutex_release(modbus_mutex);
+//				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+//				set_display_board_data(); //100ms
+//				rt_mutex_release(modbus_mutex);
 
 			}
 			fault_state_pre = device_work_data.para_type.fault_state;
