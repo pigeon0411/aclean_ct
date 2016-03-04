@@ -1378,7 +1378,13 @@ u8 motor_state_get(u8 mode)
 u8 wind_state_get(u8 mode)
 {
 	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_10))
-		return 0;
+	{
+		if(wind_state_get(1))
+			return 1;
+		else
+			return 0;
+
+	}
 	else
 		return 1;
 
@@ -1525,7 +1531,8 @@ void rt_check_ex_device_thread_entry(void* parameter)
         fault_set_bit(FAULT_RUN_BIT,run_state_get(1));
         fault_set_bit(FAULT_CLEAN_BIT,clean_state_get(1));
 		
-			fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
+		
+		//fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
 
 
 		if(fault_state_pre==0xff || fault_state_pre!= device_work_data.para_type.fault_state)
