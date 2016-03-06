@@ -45,6 +45,7 @@
 #include "app_task.h"
 #include "rtdevice.h"
 #include "application.h"
+#include "bsp_spi_flash.h"
 
 
 extern void fault_set_bit(u8 fault_type,u8 val) ;
@@ -102,7 +103,7 @@ void rt_init_thread_entry(void* parameter)
 #define thread_ModbusMasterPoll_Prio      	 9
 
 
-static rt_serial_t *serial;
+//static rt_serial_t *serial;
 
 
 u16 myreg1,myreg2;
@@ -201,6 +202,7 @@ void get_display_board_data(void)
 	{
 		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
         {
+
         
     		for(i=0;i<sizeof(struct __para_type);i++)
 			{
@@ -214,9 +216,20 @@ void get_display_board_data(void)
 			
             //device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
             device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
-            device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
-            device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
-            device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
+
+            if(device_work_data.para_type.device_mode == 1)
+            {
+
+                ;
+            }
+            else
+            {
+
+                device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
+                device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
+                device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
+            }
+
             device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
             //device_work_data.para_type.fault_state = ucMasterRTURcvBuf[9];
 
@@ -252,7 +265,7 @@ void get_display_board_data(void)
 
 				
         }      
-		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[32] == 0x7e)
+		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[6] == 0x7e)
 		{
 
 			device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
@@ -326,7 +339,8 @@ u8 disp_board_packet_data(u8 len)
 
     rs485_send_buf_not_modbus[i+2] = chk;
     rs485_send_buf_not_modbus[i+3] = 0x7E;
-
+	
+		return 1;
 }
 
 
@@ -354,7 +368,7 @@ FLASH_Status FLASH_Program_save_para(void)
 
 	u16 i;
 	u32 addr_temp;
-	u32 Address = SYS_PARA_ADDR;
+
 	u32 data;
 	
     FLASH_Unlock();
@@ -392,7 +406,7 @@ void FLASH_Program_read_para(void)
 
 	u16 i;
 	u32 addr_temp;
-	u32 Address = SYS_PARA_ADDR;
+
 	u32 data;
 	
 
@@ -437,13 +451,8 @@ rt_mutex_t motor_mutex = RT_NULL;
 void thread_entry_SysMonitor(void* parameter)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
-	uint16_t errorCount = 0;
 
-	u8 mstate = 0;
-
-	u8 cnttmp = 0;
-
-	u8 mystate = 0;
+	
 	
 	while (1)
 	{
@@ -664,11 +673,6 @@ void thread_entry_SysMonitor(void* parameter)
 void thread_entry_com_displayboard(void* parameter)
 {
 
-	u8 mstate = 0;
-
-    u8 cnttmp = 0;
-
-	u8 mystate = 0;
 	
 	while (1)
 	{
@@ -677,10 +681,17 @@ void thread_entry_com_displayboard(void* parameter)
 
 		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 
+
+#if 1
+
+        get_display_board_data(); //1s
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+#else
 		if(mystate)
 		{
 	        set_display_board_data(); //100ms
 			mystate=0;
+    		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		}
 		else
@@ -688,9 +699,10 @@ void thread_entry_com_displayboard(void* parameter)
 			mystate=1;
 
 			get_display_board_data(); //1s
+    		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		}
-		
+#endif		
 		rt_mutex_release(modbus_mutex);
 
 	}
@@ -837,6 +849,14 @@ u8 set_device_work_mode(u8 type,u8 data)
 	
 	u8 i;
 
+
+    if((type != 0x02) && (type != 0x03))
+    {// 
+        if(device_work_data.para_type.device_mode == 1)
+            return 1;
+
+    }
+    
 	for(i=0;i<sizeof(struct __para_type);i++)
 	{
 		
@@ -849,6 +869,10 @@ u8 set_device_work_mode(u8 type,u8 data)
 //	if(device_work_data.para_type.device_mode == 1)
 //		return 1;
 
+
+
+
+    
     switch(type)
         {
     case 0x02:
@@ -966,7 +990,7 @@ u8 fault_get_bit(u8 fault_type)
 #define CO2_LEVEL2_MAX      (1300-10)
 
 
-
+#if 0
 void airclean_work_auto_handle_thread(void * parameter)
 {
 
@@ -1187,8 +1211,11 @@ LABEL_AUTO_AC_CONTINUE:
     }
 
 }
+#endif
 
 
+
+extern DEVICE_WORK_TYPE device_work_data_auto;
 
 #define	HOUSE_CO2_NUM_LINK(ID)	device_work_data.para_type.house##ID##_co2
 #define	HOUSE_PM25_NUM_LINK(ID)	device_work_data.para_type.house##ID##_pm2_5
@@ -1210,8 +1237,6 @@ void airclean_work_auto_handle(void)
 	
 
 
-
-	
 	if(device_work_data.para_type.device_power_state)
     {
         if(device_work_data.para_type.device_mode == 1)
@@ -1228,9 +1253,15 @@ void airclean_work_auto_handle(void)
 				 {
 					 if(pm25_tmp > 134 || co2_tmp > 2500)
 					 {
-						 ac_esd_set(1);
-						 ac_pht_set(1);
-						 airclean_motor_set(3);
+                        ac_esd_set(1);
+                        ac_pht_set(1);
+                        airclean_motor_set(3);
+
+                        device_work_data_auto.para_type.high_pressur_state = 1;
+            			(device_work_data_auto.para_type.pht_work_state) = 1;
+            			(device_work_data_auto.para_type.wind_speed_state) = 3;
+            	            
+
 						 goto LABEL_AUTO_AC_CONTINUE;
 					 }
 			 
@@ -1252,6 +1283,10 @@ void airclean_work_auto_handle(void)
 						 ac_esd_set(1);
 						 ac_pht_set(1);
 						 airclean_motor_set(2);
+                         device_work_data_auto.para_type.high_pressur_state = 1;
+            			(device_work_data_auto.para_type.pht_work_state) = 1;
+            			(device_work_data_auto.para_type.wind_speed_state) = 2;
+
 						 goto LABEL_AUTO_AC_CONTINUE;
 					 }
 			 
@@ -1275,6 +1310,10 @@ void airclean_work_auto_handle(void)
 						ac_esd_set(0);
 						ac_pht_set(0);
 						airclean_motor_set(0);
+                        device_work_data_auto.para_type.high_pressur_state = 0;
+            			(device_work_data_auto.para_type.pht_work_state) = 0;
+            			(device_work_data_auto.para_type.wind_speed_state) = 0;
+
 						goto LABEL_AUTO_AC_CONTINUE;
 		            }
 
@@ -1809,34 +1848,43 @@ void rt_check_ex_device_thread_entry(void* parameter)
 		//0,表示正常,1表示故障
 
 		//device_work_data.para_type.fault_state  = motor_state_get(1);//bit7
-        
-        if(device_work_data.para_type.pht_work_state)
+
+        if(device_work_data.para_type.device_power_state == 1)
         {
-    		fault_set_bit(FAULT_PHT_BIT,pht_state_get(1));
+            if(device_work_data.para_type.pht_work_state)
+            {
+        		fault_set_bit(FAULT_PHT_BIT,pht_state_get(1));
+
+            }
+
+            fault_set_bit(FAULT_MOTOR_BIT,motor_state_get(1));
+            fault_set_bit(FAULT_ESD_BIT,esd_state_get(1));
+            fault_set_bit(FAULT_RUN_BIT,run_state_get(1));
+            fault_set_bit(FAULT_CLEAN_BIT,clean_state_get(1));
+    		
+    		
+    		//fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
+
+
+    		if(fault_state_pre==0xff || fault_state_pre!= device_work_data.para_type.fault_state)
+    		{
+    			if(device_work_data.para_type.fault_state)
+    			{
+        			rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+        			set_display_board_data(); //100ms
+        			rt_mutex_release(modbus_mutex);
+
+    			}
+    			fault_state_pre = device_work_data.para_type.fault_state;
+    		}
 
         }
+        else
+        {
+            device_work_data.para_type.fault_state = 0;
 
-        fault_set_bit(FAULT_MOTOR_BIT,motor_state_get(1));
-        fault_set_bit(FAULT_ESD_BIT,esd_state_get(1));
-        fault_set_bit(FAULT_RUN_BIT,run_state_get(1));
-        fault_set_bit(FAULT_CLEAN_BIT,clean_state_get(1));
-		
-		
-		//fault_set_bit(FAULT_WIND_BIT,wind_state_get(1));
-
-
-		if(fault_state_pre==0xff || fault_state_pre!= device_work_data.para_type.fault_state)
-		{
-			if(device_work_data.para_type.fault_state)
-			{
-//				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-//				set_display_board_data(); //100ms
-//				rt_mutex_release(modbus_mutex);
-
-			}
-			fault_state_pre = device_work_data.para_type.fault_state;
-		}
-		rt_thread_delay(RT_TICK_PER_SECOND);
+        }
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
 	}
 

@@ -11,7 +11,7 @@ typedef union __DEVICE_WORK_TYPE {
     struct __para_type
     {
     u8 device_power_state; //0,off;1,on
-    u8 device_mode;
+    u8 device_mode; //1 auto; 2,manual
     u8 wind_speed_state;
 	
     u8 high_pressur_state;
@@ -64,6 +64,7 @@ extern u8 device_power_state_pre;
 extern void device_sys_para_save(void);
 
 extern void device_sys_para_get(void);
+extern void device_state_init(void);
 
 
 

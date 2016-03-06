@@ -14,7 +14,7 @@
 #include "motor.h"
 #include "public_function.h"
 #include "jiguang.h"
-#include "eeprom.h"
+//#include "eeprom.h"
 
 #include "protocol.h"
 

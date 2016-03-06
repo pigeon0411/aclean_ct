@@ -14,7 +14,7 @@ u8 txd1_buffer[20];
 u8 counter_send;
 u8 txd1_buff_cFlag;
 u8 cmd_send_lenth;
-
+u8 rx_buff_f1 = 0;
 
 extern u32 time_tick_cnt;
 void fault_set_bit(u8 fault_type,u8 val);
@@ -32,14 +32,12 @@ extern volatile  u8 Ht1621_BUF[];
 #define FAULT_WIND_BIT    (5)
 #define FAULT_RESET_WIFI_BIT    (6)
 
-
 #else
-
+#define FAULT_ESD_BIT    (0)
 #define FAULT_MOTOR_BIT    (1)
 #define FAULT_PHT_BIT    (2)
-#define FAULT_CLEAN_BIT    (3)
-#define FAULT_ESD_BIT    (0)
-#define FAULT_RUN_BIT    (4)
+#define FAULT_RUN_BIT    (3)
+#define FAULT_CLEAN_BIT    (4)
 #define FAULT_WIND_BIT    (5)
 #define FAULT_RESET_WIFI_BIT    (6)
 #endif
@@ -49,6 +47,7 @@ DEVICE_WORK_TYPE device_work_data;
 
 
 u8 wifi_send_packet_buf_pub[100];
+u8 wifi_send_packet_buf_pub1[7];
 
 
 void txd1_buffer_send(void)
@@ -93,14 +92,48 @@ u8 wifi_send_packet_data(u8* buf,u8 len)
 }
 
 
+/*
+u8 wifi_send_packet_data1(u8* buf,u8 len)
+{
+    u8 i;
+    u8 chk;
+
+
+
+    wifi_send_packet_buf_pub[0] = 0xF1;
+    wifi_send_packet_buf_pub[1] = 0xF1;
+
+    for(i=0;i<len;i++)
+    {
+        wifi_send_packet_buf_pub[i+2] = buf[i];
+        chk += buf[i];    
+    }
+
+    wifi_send_packet_buf_pub[i+2] = chk;
+    wifi_send_packet_buf_pub[i+3] = 0x7E;
+
+    cmd_send_lenth = len+4;
+    //wifi_send_data(wifi_send_packet_buf_pub,len+4);
+	txd1_buffer_send();
+		return 1;
+}
+
+
+*/
+
+
+
 
 u8 return_current_device_state(void)
 {
     u8 buftmp[35];
 
+
     buftmp[0] = 0x01;
     buftmp[1] = 0x1b;
 
+
+	
     u8 i;
 
     for(i=0;i<27;i++)
@@ -111,6 +144,7 @@ u8 return_current_device_state(void)
 
     wifi_send_packet_data(buftmp,29);
 
+   
 
 	fault_set_bit(FAULT_RESET_WIFI_BIT,0);
 
@@ -283,20 +317,6 @@ u8 fault_get_bit(u8 fault_type,u8 val)
 }
 
 
-/*
-Ht1621_on_disp(8);    //T14 清洗故障
-Ht1621_on_disp(9);    //T13 光氢故障
-Ht1621_on_disp(10);  //T12 电机故障
-Ht1621_on_disp(11);  //T11 静电故障
-Ht1621_on_disp(12);   //T10 运行故障/ S5 风速高 /S4 风速中/S3 风速低
-
-
-Ht1621_on_disp(8);    //T14 清洗故障
-Ht1621_on_disp(9);    //T13 光氢故障
-Ht1621_on_disp(10);  //T12 电机故障
-Ht1621_on_disp(11);  //T11 静电故障
-Ht1621_on_disp(12);    //T10 运行故障
-*/
 
 //ljy start 160302 
 /*
@@ -488,6 +508,21 @@ u8 set_device_work_mode(u8 type,u8 data)
 
 */
 
+/*
+Ht1621_on_disp(8);    //T14 清洗故障
+Ht1621_on_disp(9);    //T13 光氢故障
+Ht1621_on_disp(10);  //T12 电机故障
+Ht1621_on_disp(11);  //T11 静电故障
+Ht1621_on_disp(12);   //T10 运行故障/ S5 风速高 /S4 风速中/S3 风速低
+
+
+Ht1621_on_disp(8);    //T14 清洗故障
+Ht1621_on_disp(9);    //T13 光氢故障
+Ht1621_on_disp(10);  //T12 电机故障
+Ht1621_on_disp(11);  //T11 静电故障
+Ht1621_on_disp(12);    //T10 运行故障
+*/
+
 
 #if 1
 void fault_check(void)
@@ -501,8 +536,10 @@ void fault_check(void)
 	u8 motortmp = fault_get_bit(0,tmp);
 
 	if(motortmp)
-		Ht1621_on_disp(10);	  //T13 1a?a1ê??
-		
+		//Ht1621_on_disp(10);	  //T12 电机故障
+		Ht1621_on_disp(11);	  //T11 静电故障
+	if(!motortmp)
+              Ht1621_off_disp(11);	  //T11 静电故障
 	for(u8 i=1;i<=5;i++)
 	{
 		if(fault_get_bit(i,tmp))
@@ -510,21 +547,21 @@ void fault_check(void)
 			switch(i)
 			{
 			case FAULT_MOTOR_BIT:
-				case FAULT_WIND_BIT:
-				tmp = 1;
-				Ht1621_on_disp(10);	  //T13 1a?a1ê??
+				//case FAULT_WIND_BIT:
+				//tmp = 1;
+				Ht1621_on_disp(10);	  //T12 电机故障
 				break;
 			case FAULT_PHT_BIT:
-				Ht1621_on_disp(9);	  //T13 1a?a1ê??
+				Ht1621_on_disp(9);	  //T13 光氢故障
 				break;
 			case FAULT_CLEAN_BIT:
-				Ht1621_on_disp(8);	  //T13 1a?a1ê??
+				Ht1621_on_disp(8);	  //T14 清洗故障
 				break;
 			case FAULT_ESD_BIT:
-				Ht1621_on_disp(11);	  //T13 1a?a1ê??
+				Ht1621_on_disp(11);	  //T11 静电故障
 				break;
 			case FAULT_RUN_BIT:
-				Ht1621_on_disp(12);	  //T13 1a?a1ê??
+				Ht1621_on_disp(12);	  //T10 运行故障
 				break;
 				
 			default:   //T13 1a?a1ê??
@@ -534,44 +571,45 @@ void fault_check(void)
 
 			
 			delay_ms(50);
-			Ht1621Display();  //PM2.5??????ê?	
+			Ht1621Display(); 
 		}
 		else
 		{
 			switch(i)
 			{
 			case FAULT_MOTOR_BIT:
-			case FAULT_WIND_BIT:
-				if(!motortmp)
-				{
-					if(tmp!=1)
-					Ht1621_off_disp(10);	  //T13 1a?a1ê??
-
-				}
+			//case FAULT_WIND_BIT:
+				//if(!motortmp)
+				//{
+					//if(tmp!=1)
+					Ht1621_off_disp(10);	  //T12 电机故障
+				//}
 				break;
 			case FAULT_PHT_BIT:
-				Ht1621_off_disp(9);	  //T13 1a?a1ê??
+				Ht1621_off_disp(9);	  //T13 光氢故障
 				break;
 			case FAULT_CLEAN_BIT:
-				Ht1621_off_disp(8);	  //T13 1a?a1ê??
+				Ht1621_off_disp(8);	 //T14 清洗故障
 				break;
 			case FAULT_ESD_BIT:
-				Ht1621_off_disp(11);	  //T13 1a?a1ê??
+				Ht1621_off_disp(11);	   //T11 静电故障
 				break;
 			case FAULT_RUN_BIT:
-				Ht1621_off_disp(12);	  //T13 1a?a1ê??
+				Ht1621_off_disp(12);	  //T10 运行故障
 				break;
 			default:
 				break;
 			}
 
-			
+		      //delay_ms(50);
+			//Ht1621Display();  
 		}
 
 	}
 }
 
 #else
+
 void fault_check(void)
 {
 	u8 tmp;
@@ -642,7 +680,7 @@ u8 device_power_state_pre = 0xff;
 void cmd_uart_check(void)
 {
 	u8 rx_buff_tmp[40];
-
+	
 	
     if(rxd1_buff_cFlag)
     {
@@ -655,17 +693,18 @@ void cmd_uart_check(void)
 		for(u8 i=0;i<40;i++)
 			in_com_buff[i] = 0;
 
-        if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)
+        if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1 && rx_buff_f1 == 1)
         {
             if(rx_buff_tmp[2] == 0x01)
             {
                 return_current_device_state();
+		  //rx_buff_f1 = 0 ;
 
             }
         }
-        else if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2)
+        else if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2 )
         {
-
+		rx_buff_f1 = 1;
             device_work_data.para_type.house1_co2 = (u16)rx_buff_tmp[12]<<8;
 			device_work_data.para_type.house1_co2 += (u16)rx_buff_tmp[13];
 			
@@ -713,7 +752,6 @@ void cmd_uart_check(void)
 			device_work_data.para_type.pht_work_state = rx_buff_tmp[8];
 			
                   //ljy end 160303
-
 
 
 #if 1
@@ -815,6 +853,7 @@ int main(void)
 	uart2_init();
 
 
+
 #if 0	
 	Ht1621_on_disp(8);	  //T14 清洗故障
 	Ht1621_on_disp(9);	  //T13 光氢故障
@@ -852,7 +891,7 @@ int main(void)
         Key_Scan();   //按键扫描
         PollingKey();
 
-		onoff_Scan(); //开关机
+         onoff_Scan(); //开关机
 		
         cmd_uart_check();	
 

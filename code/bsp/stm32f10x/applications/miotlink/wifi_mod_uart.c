@@ -144,6 +144,8 @@ void send_F7_packet(void)
 
 
 DEVICE_WORK_TYPE device_work_data;
+DEVICE_WORK_TYPE device_work_data_auto;
+
 u8 device_power_state_pre=0xff;
 
 extern void FLASH_Program_read_para(void);
@@ -212,11 +214,29 @@ u8 return_current_device_state(void)
 
     u8 i;
 
+
     for(i=0;i<27;i++)
-        {
+    {
         buftmp[2+i] = device_work_data.device_data[i];
 
     }
+    
+    if(device_work_data.para_type.device_power_state == 0) //poweroff
+    {
+        buftmp[2+1] = 0;
+        buftmp[2+2] = 0;
+        buftmp[2+3] = 0;
+
+    }
+    else if(device_work_data.para_type.device_mode == 1)
+    {
+
+        buftmp[2+1] = device_work_data_auto.para_type.high_pressur_state;
+		buftmp[2+2] = (device_work_data_auto.para_type.pht_work_state);
+		buftmp[2+3] = (device_work_data_auto.para_type.wind_speed_state);
+
+    }
+
 
     wifi_send_packet_data(buftmp,29);
 

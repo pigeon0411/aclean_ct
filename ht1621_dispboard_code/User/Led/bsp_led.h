@@ -147,8 +147,8 @@ void PollingKey(void);  //智能/手动/定时
 void onoff_Scan(void); //开关
 void pin0_Scan(void) ;
 void pin1_Scan(void) ;
-void pin2_Scan(void) ;
-void pin3_Scan(void) ;
+//void pin2_Scan(void) ;
+//void pin3_Scan(void) ;
 void pin4_Scan(void) ;
 void pin5_Scan(void) ;
 void pin6_Scan(void) ;
