@@ -673,7 +673,7 @@ void thread_entry_SysMonitor(void* parameter)
 void thread_entry_com_displayboard(void* parameter)
 {
 
-	
+	u8 mystate;
 	while (1)
 	{
 		
@@ -682,7 +682,7 @@ void thread_entry_com_displayboard(void* parameter)
 		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 
 
-#if 1
+#if 0
 
         get_display_board_data(); //1s
 		rt_thread_delay(RT_TICK_PER_SECOND/10);

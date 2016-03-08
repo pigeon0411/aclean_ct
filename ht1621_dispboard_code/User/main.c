@@ -92,38 +92,6 @@ u8 wifi_send_packet_data(u8* buf,u8 len)
 }
 
 
-/*
-u8 wifi_send_packet_data1(u8* buf,u8 len)
-{
-    u8 i;
-    u8 chk;
-
-
-
-    wifi_send_packet_buf_pub[0] = 0xF1;
-    wifi_send_packet_buf_pub[1] = 0xF1;
-
-    for(i=0;i<len;i++)
-    {
-        wifi_send_packet_buf_pub[i+2] = buf[i];
-        chk += buf[i];    
-    }
-
-    wifi_send_packet_buf_pub[i+2] = chk;
-    wifi_send_packet_buf_pub[i+3] = 0x7E;
-
-    cmd_send_lenth = len+4;
-    //wifi_send_data(wifi_send_packet_buf_pub,len+4);
-	txd1_buffer_send();
-		return 1;
-}
-
-
-*/
-
-
-
-
 u8 return_current_device_state(void)
 {
     u8 buftmp[35];
@@ -151,6 +119,47 @@ u8 return_current_device_state(void)
     return 0;
 }
 
+
+u8 com_send_packet_data_f1(u8* buf,u8 len)
+{
+    u8 i;
+    u8 chk;
+
+    wifi_send_packet_buf_pub[0] = 0xF1;
+    wifi_send_packet_buf_pub[1] = 0xF1;
+
+    for(i=0;i<len;i++)
+    {
+        wifi_send_packet_buf_pub[i+2] = buf[i];
+        chk += buf[i];    
+    }
+
+    wifi_send_packet_buf_pub[i+2] = chk;
+    wifi_send_packet_buf_pub[i+3] = 0x7E;
+
+    cmd_send_lenth = len+4;
+    //wifi_send_data(wifi_send_packet_buf_pub,len+4);
+	txd1_buffer_send();
+		return 1;
+}
+
+
+//mode: 0,off; 1,on
+u8 return_device_power_state_change(u8 mode)
+{
+    u8 buftmp[8];
+
+    if(mode > 1)
+        mode = 1;
+
+    buftmp[0] = 0x02;
+    buftmp[1] = 0x01;
+    buftmp[2] = mode;
+
+    com_send_packet_data_f1(buftmp,3);
+
+    return 0;
+}
 
 
 
@@ -406,107 +415,6 @@ void fault_check(void)
 }
 */
 
-/*
-// ljy 160303
-u8 wifi_send_packet_buf_pub[100];
-u8 wifi_recv_packet_buf_pub[100];
-u8 wifi_data_buffer_recv_tmp[100];  
-u8 wifi_recieve_data_length = 0;
-
-wifi_receive_data_decode(&wifi_recv_packet_buf_pub[2],wifi_recieve_data_length-4);
-
-u8 wifi_receive_data_decode(u8* buf,u8 len)
-{
-//    u8 i;
-//    u8 chk;
-    
-    switch(buf[0])
-    {
-    case 0x01:
-        return_current_device_state();   
-        break;
-    case 0x02:
-    case 0x03:        
-    case 0x04:
-    case 0x05:
-    case 0x06:
-    case 0x07:
-        set_device_work_mode(buf[0],buf[2]);
-        return_current_device_state();  
-        break;
-    case 0xf7:
-        send_F7_packet();
-        break;
-
-    default:break;       
-    }
-
-    return 1;
-}
-
-
-
-
-u8 set_device_work_mode(u8 type,u8 data)
-{
-
-	if(device_work_data.para_type.device_mode == 1)
-		return 1;
-
-    switch(type)
-        {
-    case 0x02:
-        if(data)
-        {    device_work_data.para_type.device_power_state = 1;
-            airclean_power_onoff(1);
-		}
-        else
-        {    device_work_data.para_type.device_power_state = 0;
-            airclean_power_onoff(0);
-        }
-        break;
-    case 0x03:
-        if(data==1||data==2)
-	device_work_data.para_type.device_mode = data;
-        break;
-    case 0x04:
-        if(data)
-            device_work_data.para_type.high_pressur_state = 1;
-        else
-            device_work_data.para_type.high_pressur_state = 0;
-
-        
-        break;
-    case 0x05:
-        if(data)
-            device_work_data.para_type.pht_work_state = 1;
-        else
-            device_work_data.para_type.pht_work_state = 0;
-
-        ac_pht_set(data);
-        break;
-    case 0x06:
-        if(data<=0x0c)
-            device_work_data.para_type.timing_state = data;
-        else
-            device_work_data.para_type.timing_state = 0;
-
-        
-        break;
-    case 0x07:
-        if(data<=3)
-            device_work_data.para_type.wind_speed_state = data;
-        set_dc_motor_speed(data);
-
-		ac_ac_motor_set(data);
-        break;
-
-    default:break;
-
-    }
-
-
-*/
 
 /*
 Ht1621_on_disp(8);    //T14 清洗故障
@@ -697,7 +605,18 @@ void cmd_uart_check(void)
         {
             if(rx_buff_tmp[2] == 0x01)
             {
-                return_current_device_state();
+                if(power_key_state == 0x01)
+                {//power on
+                    power_key_state = 0xff;
+                    return_device_power_state_change(1);
+
+                }
+                else if(power_key_state == 0x00)
+                {//power off
+                    power_key_state = 0xff;
+                    return_device_power_state_change(0);
+                    
+                }
 		  //rx_buff_f1 = 0 ;
 
             }
@@ -775,8 +694,8 @@ void cmd_uart_check(void)
 			}
 #endif
 
-			device_work_mode_check();
-			fault_check();
+			device_work_mode_check();  //收到主板按键显示命令
+			fault_check();                          //收到主板故障代码命令
                     
 			
      
@@ -839,9 +758,9 @@ int main(void)
 	/* 通用定时器 TIMx,x[2,3,4,5] 重新开时钟，开始计时 */
 	macTIM_APBxClock_FUN (macTIM_CLK, ENABLE);
 	
-	HT1621_BL(OFF);
-	HT1621_LED(OFF);
-       Ht1621_clrbuf(); 
+	HT1621_BL(OFF);      //显示背光
+	HT1621_LED(OFF);    //按键背光
+       Ht1621_clrbuf();      //显示初始化
        Ht1621_cls();  //清屏
        delay_ms(50);
 
@@ -891,7 +810,7 @@ int main(void)
         Key_Scan();   //按键扫描
         PollingKey();
 
-         onoff_Scan(); //开关机
+         onoff_Scan(); //按键开关
 		
         cmd_uart_check();	
 
