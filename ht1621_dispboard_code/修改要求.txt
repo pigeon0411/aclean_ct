@@ -1,0 +1,30 @@
+
+
+
+// 以下部分为收到主板关机命令后，将关闭显示屏，在主函数中仍然需要检测电源按键
+//如果 device_work_data.para_type.device_power_state 为0的时候，屏幕将关闭，直到收到 device_work_data.para_type.device_power_state为1才开启屏幕
+//或者直到按显示板的电源键才开开启显示
+
+
+
+#if 1
+
+			if(device_power_state_pre==0xff || device_power_state_pre!= device_work_data.para_type.device_power_state)
+			{
+				if(device_work_data.para_type.device_power_state == 0)
+				{
+				
+					onoff_device_set(OFF);
+
+				}
+				else
+				{
+					onoff_device_set(ON);
+				}
+
+				device_power_state_pre = device_work_data.para_type.device_power_state;
+			}
+#endif
+
+
+

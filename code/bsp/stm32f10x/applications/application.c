@@ -51,6 +51,11 @@
 extern void fault_set_bit(u8 fault_type,u8 val) ;
 void airclean_power_onoff(u8 mode);
 
+
+extern void thread_entry_com_displayboard(void* parameter);
+
+
+
 u32 power_tim_cnt = 0;
 
 
@@ -124,7 +129,7 @@ extern DEVICE_WORK_TYPE device_work_data;
 
 extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut );
 
-u8 rs485_send_buf_not_modbus[50];
+static u8 rs485_send_buf_not_modbus[50];
 
 
 void set_dc_motor_speed(u8 speed)
@@ -670,48 +675,6 @@ void thread_entry_SysMonitor(void* parameter)
 
 
 
-void thread_entry_com_displayboard(void* parameter)
-{
-
-	u8 mystate;
-	while (1)
-	{
-		
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
-
-		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-
-
-#if 0
-
-        get_display_board_data(); //1s
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
-#else
-		if(mystate)
-		{
-	        set_display_board_data(); //100ms
-			mystate=0;
-    		rt_thread_delay(RT_TICK_PER_SECOND/10);
-
-		}
-		else
-		{
-			mystate=1;
-
-			get_display_board_data(); //1s
-    		rt_thread_delay(RT_TICK_PER_SECOND/10);
-
-		}
-#endif		
-		rt_mutex_release(modbus_mutex);
-
-	}
-}
-
-
-
-
-
 //************************ Modbus主机轮训线程***************************
 //函数定义: void thread_entry_ModbusMasterPoll(void* parameter)
 //入口参数：无
@@ -720,7 +683,7 @@ void thread_entry_com_displayboard(void* parameter)
 //******************************************************************
 void thread_entry_ModbusMasterPoll(void* parameter)
 {
-	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
+	eMBMasterInit(MB_RTU, 4, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
         extern struct rt_serial_device serial1;
 
