@@ -43,6 +43,7 @@ extern volatile  u8 Ht1621_BUF[];
 #endif
 
 DEVICE_WORK_TYPE device_work_data;
+DEVICE_WORK_TYPE device_work_changing_data;
 
 
 
@@ -106,7 +107,7 @@ u8 return_current_device_state(void)
 
     for(i=0;i<27;i++)
         {
-        buftmp[2+i] = device_work_data.device_data[i];
+        buftmp[2+i] = device_work_changing_data.device_data[i];
 
     }
 
@@ -311,9 +312,9 @@ void serial_int1_send(void)	   //send data to USAR1
 void fault_set_bit(u8 fault_type,u8 val) 
 {
     if(val)
-        device_work_data.para_type.fault_state |= 1<<fault_type;
+        device_work_changing_data.para_type.fault_state |= 1<<fault_type;
     else
-        device_work_data.para_type.fault_state &= ~(1<<fault_type);
+        device_work_changing_data.para_type.fault_state &= ~(1<<fault_type);
 
 
 }
@@ -697,7 +698,9 @@ void cmd_uart_check(void)
 			device_work_mode_check();  //收到主板按键显示命令
 			fault_check();                          //收到主板故障代码命令
                     
-			
+
+			for(u8 i=0;i<7;i++)
+				device_work_changing_data.device_data[i] = device_work_data.device_data[i];
      
         }
 
