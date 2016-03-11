@@ -185,7 +185,7 @@ BOOL xMBMasterPortSerialGetByte_2(CHAR * pucByte)
  */
 static void prvvUARTTxReadyISR(void)
 {
-    pxMBMasterFrameCBTransmitterEmpty();
+    pxMBMasterFrameCBTransmitterEmpty_2();
 }
 
 /* 
@@ -196,7 +196,7 @@ static void prvvUARTTxReadyISR(void)
  */
 static void prvvUARTRxISR(void)
 {
-    pxMBMasterFrameCBByteReceived();
+    pxMBMasterFrameCBByteReceived_2();
 }
 
 /**

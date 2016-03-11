@@ -1,7 +1,7 @@
 
 #include "user_mb_app_2.h"
 #include "wifi_mod_uart.h"
-
+#include "delay_conf.h"
 
 #define MB_SER_PDU_SIZE_MAX     256     /*!< Maximum size of a Modbus RTU frame. */
 
@@ -12,6 +12,7 @@ extern DEVICE_WORK_TYPE device_work_data_bak;
 
 
 extern eMBMasterReqErrCode	eMBMasterReqRead_not_rtu_datas_2(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut ); //发送非MODBUS格式的数据
+extern void airclean_power_onoff(u8 mode);
 
 
 static u8 rs485_send_buf_not_modbus[50];
@@ -227,7 +228,7 @@ void thread_entry_ModbusMasterPoll_2(void* parameter)
 
 
 
-static void thread_entry_com_displayboard(void* parameter)
+void thread_entry_com_displayboard(void* parameter)
 {
     rt_thread_t init_thread;
 

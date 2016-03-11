@@ -28,7 +28,7 @@
  * File: $Id: mbrtu.h,v 1.9  2006/12/07 22:10:34 wolti Exp $
  * File: $Id: mbrtu.h,v 1.60 2013/08/17 13:11:42 Armink Add Master Functions $
  */
-#include "mbconfig.h"
+#include "mbconfig_2.h"
 
 #ifndef _MB_RTU_H
 #define _MB_RTU_H
@@ -36,26 +36,26 @@
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif
-eMBErrorCode    eMBRTUInit( UCHAR slaveAddress, UCHAR ucPort, ULONG ulBaudRate,
+eMBErrorCode    eMBRTUInit_2( UCHAR slaveAddress, UCHAR ucPort, ULONG ulBaudRate,
 						    eMBParity eParity );
-void            eMBRTUStart( void );
-void            eMBRTUStop( void );
-eMBErrorCode    eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength );
-eMBErrorCode    eMBRTUSend( UCHAR slaveAddress, const UCHAR * pucFrame, USHORT usLength );
-BOOL            xMBRTUReceiveFSM( void );
-BOOL            xMBRTUTransmitFSM( void );
-BOOL            xMBRTUTimerT15Expired( void );
-BOOL            xMBRTUTimerT35Expired( void );
+void            eMBRTUStart_2( void );
+void            eMBRTUStop_2( void );
+eMBErrorCode    eMBRTUReceive_2( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength );
+eMBErrorCode    eMBRTUSend_2( UCHAR slaveAddress, const UCHAR * pucFrame, USHORT usLength );
+BOOL            xMBRTUReceiveFSM_2( void );
+BOOL            xMBRTUTransmitFSM_2( void );
+BOOL            xMBRTUTimerT15Expired_2( void );
+BOOL            xMBRTUTimerT35Expired_2( void );
 
 #if MB_MASTER_RTU_ENABLED > 0
-eMBErrorCode    eMBMasterRTUInit( UCHAR ucPort, ULONG ulBaudRate,eMBParity eParity );
-void            eMBMasterRTUStart( void );
-void            eMBMasterRTUStop( void );
-eMBErrorCode    eMBMasterRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength );
-eMBErrorCode    eMBMasterRTUSend( UCHAR slaveAddress, const UCHAR * pucFrame, USHORT usLength );
-BOOL            xMBMasterRTUReceiveFSM( void );
-BOOL            xMBMasterRTUTransmitFSM( void );
-BOOL            xMBMasterRTUTimerExpired( void );
+eMBErrorCode    eMBMasterRTUInit_2( UCHAR ucPort, ULONG ulBaudRate,eMBParity eParity );
+void            eMBMasterRTUStart_2( void );
+void            eMBMasterRTUStop_2( void );
+eMBErrorCode    eMBMasterRTUReceive_2( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength );
+eMBErrorCode    eMBMasterRTUSend_2( UCHAR slaveAddress, const UCHAR * pucFrame, USHORT usLength );
+BOOL            xMBMasterRTUReceiveFSM_2( void );
+BOOL            xMBMasterRTUTransmitFSM_2( void );
+BOOL            xMBMasterRTUTimerExpired_2( void );
 #endif
 
 #ifdef __cplusplus

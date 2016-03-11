@@ -38,11 +38,11 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "mb.h"
-#include "mb_m.h"
-#include "mbframe.h"
-#include "mbproto.h"
-#include "mbconfig.h"
+#include "mb_2.h"
+#include "mb_m_2.h"
+#include "mbframe_2.h"
+#include "mbproto_2.h"
+#include "mbconfig_2.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_REQ_READ_ADDR_OFF            ( MB_PDU_DATA_OFF + 0 )
@@ -70,31 +70,31 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
  * @return error code
  */
 eMBMasterReqErrCode
-eMBMasterReqReadDiscreteInputs( UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
+eMBMasterReqReadDiscreteInputs_2( UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
 {
     UCHAR                 *ucMBFrame;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 
     if ( ucSndAddr > MB_MASTER_TOTAL_SLAVE_NUM ) eErrStatus = MB_MRE_ILL_ARG;
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
+    else if ( xMBMasterRunResTake_2( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
     else
     {
-		vMBMasterGetPDUSndBuf(&ucMBFrame);
-		vMBMasterSetDestAddress(ucSndAddr);
+		vMBMasterGetPDUSndBuf_2(&ucMBFrame);
+		vMBMasterSetDestAddress_2(ucSndAddr);
 		ucMBFrame[MB_PDU_FUNC_OFF]                 = MB_FUNC_READ_DISCRETE_INPUTS;
 		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF]        = usDiscreteAddr >> 8;
 		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1]    = usDiscreteAddr;
 		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF ]    = usNDiscreteIn >> 8;
 		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] = usNDiscreteIn;
-		vMBMasterSetPDUSndLength( MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-		( void ) xMBMasterPortEventPost( EV_MASTER_FRAME_SENT );
-		eErrStatus = eMBMasterWaitRequestFinish( );
+		vMBMasterSetPDUSndLength_2( MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
+		( void ) xMBMasterPortEventPost_2( EV_MASTER_FRAME_SENT );
+		eErrStatus = eMBMasterWaitRequestFinish_2( );
     }
     return eErrStatus;
 }
 
 eMBException
-eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncReadDiscreteInputs_2( UCHAR * pucFrame, USHORT * usLen )
 {
     USHORT          usRegAddress;
     USHORT          usDiscreteCnt;
@@ -105,13 +105,13 @@ eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
     eMBErrorCode    eRegStatus;
 
     /* If this request is broadcast, and it's read mode. This request don't need execute. */
-    if ( xMBMasterRequestIsBroadcast() )
+    if ( xMBMasterRequestIsBroadcast_2() )
     {
     	eStatus = MB_EX_NONE;
     }
     else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-    	vMBMasterGetPDUSndBuf(&ucMBFrame);
+    	vMBMasterGetPDUSndBuf_2(&ucMBFrame);
         usRegAddress = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
         usRegAddress |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
@@ -136,7 +136,7 @@ eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
 		if ((usDiscreteCnt >= 1) && ucNBytes == pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF])
         {
 	       	/* Make callback to fill the buffer. */
-			eRegStatus = eMBMasterRegDiscreteCB( &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usDiscreteCnt );
+			eRegStatus = eMBMasterRegDiscreteCB_2( &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usDiscreteCnt );
 
 			/* If an error occured convert it into a Modbus exception. */
 			if( eRegStatus != MB_ENOERR )

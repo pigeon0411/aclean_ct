@@ -37,9 +37,9 @@
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
-#include "mbframe.h"
-#include "mbproto.h"
-#include "mbconfig.h"
+#include "mbframe_2.h"
+#include "mbproto_2.h"
+#include "mbconfig_2.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_FUNC_READ_ADDR_OFF           ( MB_PDU_DATA_OFF )

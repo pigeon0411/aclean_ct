@@ -36,11 +36,11 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "mb.h"
-#include "mb_m.h"
-#include "mbframe.h"
-#include "mbproto.h"
-#include "mbconfig.h"
+#include "mb_2.h"
+#include "mb_m_2.h"
+#include "mbframe_2.h"
+#include "mbproto_2.h"
+#include "mbconfig_2.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_REQ_READ_ADDR_OFF            ( MB_PDU_DATA_OFF + 0 )
@@ -85,32 +85,32 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
  * @return error code
  */
 eMBMasterReqErrCode
-eMBMasterReqReadCoils( UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usNCoils ,LONG lTimeOut )
+eMBMasterReqReadCoils_2( UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usNCoils ,LONG lTimeOut )
 {
     UCHAR                 *ucMBFrame;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 
     if ( ucSndAddr > MB_MASTER_TOTAL_SLAVE_NUM ) eErrStatus = MB_MRE_ILL_ARG;
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
+    else if ( xMBMasterRunResTake_2( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
     else
     {
-		vMBMasterGetPDUSndBuf(&ucMBFrame);
-		vMBMasterSetDestAddress(ucSndAddr);
+		vMBMasterGetPDUSndBuf_2(&ucMBFrame);
+		vMBMasterSetDestAddress_2(ucSndAddr);
 		ucMBFrame[MB_PDU_FUNC_OFF]                 = MB_FUNC_READ_COILS;
 		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF]        = usCoilAddr >> 8;
 		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1]    = usCoilAddr;
 		ucMBFrame[MB_PDU_REQ_READ_COILCNT_OFF ]    = usNCoils >> 8;
 		ucMBFrame[MB_PDU_REQ_READ_COILCNT_OFF + 1] = usNCoils;
-		vMBMasterSetPDUSndLength( MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-		( void ) xMBMasterPortEventPost( EV_MASTER_FRAME_SENT );
-		eErrStatus = eMBMasterWaitRequestFinish( );
+		vMBMasterSetPDUSndLength_2( MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
+		( void ) xMBMasterPortEventPost_2( EV_MASTER_FRAME_SENT );
+		eErrStatus = eMBMasterWaitRequestFinish_2( );
 
     }
     return eErrStatus;
 }
 
 eMBException
-eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncReadCoils_2( UCHAR * pucFrame, USHORT * usLen )
 {
     UCHAR          *ucMBFrame;
     USHORT          usRegAddress;
@@ -121,13 +121,13 @@ eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
     eMBErrorCode    eRegStatus;
 
     /* If this request is broadcast, and it's read mode. This request don't need execute. */
-    if ( xMBMasterRequestIsBroadcast() )
+    if ( xMBMasterRequestIsBroadcast_2() )
     {
     	eStatus = MB_EX_NONE;
     }
     else if ( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-    	vMBMasterGetPDUSndBuf(&ucMBFrame);
+    	vMBMasterGetPDUSndBuf_2(&ucMBFrame);
         usRegAddress = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
         usRegAddress |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
@@ -153,7 +153,7 @@ eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
             ( ucByteCount == pucFrame[MB_PDU_FUNC_READ_COILCNT_OFF] ) )
         {
         	/* Make callback to fill the buffer. */
-            eRegStatus = eMBMasterRegCoilsCB( &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usCoilCount, MB_REG_READ );
+            eRegStatus = eMBMasterRegCoilsCB_2( &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usCoilCount, MB_REG_READ );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -191,32 +191,32 @@ eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen )
  * @see eMBMasterReqWriteMultipleCoils
  */
 eMBMasterReqErrCode
-eMBMasterReqWriteCoil( UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usCoilData, LONG lTimeOut )
+eMBMasterReqWriteCoil_2( UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usCoilData, LONG lTimeOut )
 {
     UCHAR                 *ucMBFrame;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 
     if ( ucSndAddr > MB_MASTER_TOTAL_SLAVE_NUM ) eErrStatus = MB_MRE_ILL_ARG;
     else if ( ( usCoilData != 0xFF00 ) && ( usCoilData != 0x0000 ) ) eErrStatus = MB_MRE_ILL_ARG;
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
+    else if ( xMBMasterRunResTake_2( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
     else
     {
-		vMBMasterGetPDUSndBuf(&ucMBFrame);
-		vMBMasterSetDestAddress(ucSndAddr);
+		vMBMasterGetPDUSndBuf_2(&ucMBFrame);
+		vMBMasterSetDestAddress_2(ucSndAddr);
 		ucMBFrame[MB_PDU_FUNC_OFF]                = MB_FUNC_WRITE_SINGLE_COIL;
 		ucMBFrame[MB_PDU_REQ_WRITE_ADDR_OFF]      = usCoilAddr >> 8;
 		ucMBFrame[MB_PDU_REQ_WRITE_ADDR_OFF + 1]  = usCoilAddr;
 		ucMBFrame[MB_PDU_REQ_WRITE_VALUE_OFF ]    = usCoilData >> 8;
 		ucMBFrame[MB_PDU_REQ_WRITE_VALUE_OFF + 1] = usCoilData;
-		vMBMasterSetPDUSndLength( MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
-		( void ) xMBMasterPortEventPost( EV_MASTER_FRAME_SENT );
-		eErrStatus = eMBMasterWaitRequestFinish( );
+		vMBMasterSetPDUSndLength_2( MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
+		( void ) xMBMasterPortEventPost_2( EV_MASTER_FRAME_SENT );
+		eErrStatus = eMBMasterWaitRequestFinish_2( );
     }
     return eErrStatus;
 }
 
 eMBException
-eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncWriteCoil_2( UCHAR * pucFrame, USHORT * usLen )
 {
     USHORT          usRegAddress;
     UCHAR           ucBuf[2];
@@ -244,7 +244,7 @@ eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
                 ucBuf[0] = 0;
             }
             eRegStatus =
-                eMBMasterRegCoilsCB( &ucBuf[0], usRegAddress, 1, MB_REG_WRITE );
+                eMBMasterRegCoilsCB_2( &ucBuf[0], usRegAddress, 1, MB_REG_WRITE );
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -284,7 +284,7 @@ eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen )
  * @see eMBMasterReqWriteCoil
  */
 eMBMasterReqErrCode
-eMBMasterReqWriteMultipleCoils( UCHAR ucSndAddr,
+eMBMasterReqWriteMultipleCoils_2( UCHAR ucSndAddr,
 		USHORT usCoilAddr, USHORT usNCoils, UCHAR * pucDataBuffer, LONG lTimeOut)
 {
     UCHAR                 *ucMBFrame;
@@ -294,11 +294,11 @@ eMBMasterReqWriteMultipleCoils( UCHAR ucSndAddr,
 
     if ( ucSndAddr > MB_MASTER_TOTAL_SLAVE_NUM ) eErrStatus = MB_MRE_ILL_ARG;
     else if ( usNCoils > MB_PDU_REQ_WRITE_MUL_COILCNT_MAX ) eErrStatus = MB_MRE_ILL_ARG;
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
+    else if ( xMBMasterRunResTake_2( lTimeOut ) == FALSE ) eErrStatus = MB_MRE_MASTER_BUSY;
     else
     {
-		vMBMasterGetPDUSndBuf(&ucMBFrame);
-		vMBMasterSetDestAddress(ucSndAddr);
+		vMBMasterGetPDUSndBuf_2(&ucMBFrame);
+		vMBMasterSetDestAddress_2(ucSndAddr);
 		ucMBFrame[MB_PDU_FUNC_OFF]                      = MB_FUNC_WRITE_MULTIPLE_COILS;
 		ucMBFrame[MB_PDU_REQ_WRITE_MUL_ADDR_OFF]        = usCoilAddr >> 8;
 		ucMBFrame[MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1]    = usCoilAddr;
@@ -318,15 +318,15 @@ eMBMasterReqWriteMultipleCoils( UCHAR ucSndAddr,
 		{
 			*ucMBFrame++ = pucDataBuffer[usRegIndex++];
 		}
-		vMBMasterSetPDUSndLength( MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
-		( void ) xMBMasterPortEventPost( EV_MASTER_FRAME_SENT );
-		eErrStatus = eMBMasterWaitRequestFinish( );
+		vMBMasterSetPDUSndLength_2( MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
+		( void ) xMBMasterPortEventPost_2( EV_MASTER_FRAME_SENT );
+		eErrStatus = eMBMasterWaitRequestFinish_2( );
     }
     return eErrStatus;
 }
 
 eMBException
-eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncWriteMultipleCoils_2( UCHAR * pucFrame, USHORT * usLen )
 {
     USHORT          usRegAddress;
     USHORT          usCoilCnt;
@@ -338,9 +338,9 @@ eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen )
     eMBErrorCode    eRegStatus;
 
     /* If this request is broadcast, the *usLen is not need check. */
-    if( ( *usLen == MB_PDU_FUNC_WRITE_MUL_SIZE ) || xMBMasterRequestIsBroadcast() )
+    if( ( *usLen == MB_PDU_FUNC_WRITE_MUL_SIZE ) || xMBMasterRequestIsBroadcast_2() )
     {
-    	vMBMasterGetPDUSndBuf(&ucMBFrame);
+    	vMBMasterGetPDUSndBuf_2(&ucMBFrame);
         usRegAddress = ( USHORT )( pucFrame[MB_PDU_FUNC_WRITE_MUL_ADDR_OFF] << 8 );
         usRegAddress |= ( USHORT )( pucFrame[MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1] );
         usRegAddress++;
@@ -363,7 +363,7 @@ eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen )
         if( ( usCoilCnt >= 1 ) && ( ucByteCountVerify == ucByteCount ) )
         {
             eRegStatus =
-                eMBMasterRegCoilsCB( &ucMBFrame[MB_PDU_REQ_WRITE_MUL_VALUES_OFF],
+                eMBMasterRegCoilsCB_2( &ucMBFrame[MB_PDU_REQ_WRITE_MUL_VALUES_OFF],
                                usRegAddress, usCoilCnt, MB_REG_WRITE );
 
             /* If an error occured convert it into a Modbus exception. */

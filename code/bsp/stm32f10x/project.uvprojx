@@ -10,7 +10,7 @@
       <TargetName>rtthread-stm32</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
+      <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F103RC</Device>
@@ -897,24 +897,9 @@
               <FilePath>.\FreeModbus_2\mbcrc_2.c</FilePath>
             </File>
             <File>
-              <FileName>mbfunccoils_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfunccoils_2.c</FilePath>
-            </File>
-            <File>
               <FileName>mbfunccoils_m_2.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus_2\mbfunccoils_m_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>mbfuncdiag_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfuncdiag_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>mbfuncdisc_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfuncdisc_2.c</FilePath>
             </File>
             <File>
               <FileName>mbfuncdisc_m_2.c</FileName>
@@ -922,34 +907,14 @@
               <FilePath>.\FreeModbus_2\mbfuncdisc_m_2.c</FilePath>
             </File>
             <File>
-              <FileName>mbfuncholding_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfuncholding_2.c</FilePath>
-            </File>
-            <File>
               <FileName>mbfuncholding_m_2.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus_2\mbfuncholding_m_2.c</FilePath>
             </File>
             <File>
-              <FileName>mbfuncinput_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfuncinput_2.c</FilePath>
-            </File>
-            <File>
               <FileName>mbfuncinput_m_2.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus_2\mbfuncinput_m_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>mbfuncother_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbfuncother_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>mbrtu_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\mbrtu_2.c</FilePath>
             </File>
             <File>
               <FileName>mbrtu_m_2.c</FileName>
@@ -962,24 +927,9 @@
               <FilePath>.\FreeModbus_2\mbutils_2.c</FilePath>
             </File>
             <File>
-              <FileName>port_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\port_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>portevent_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\portevent_2.c</FilePath>
-            </File>
-            <File>
               <FileName>portevent_m_2.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus_2\portevent_m_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>portserial_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\portserial_2.c</FilePath>
             </File>
             <File>
               <FileName>portserial_m_2.c</FileName>
@@ -987,19 +937,9 @@
               <FilePath>.\FreeModbus_2\portserial_m_2.c</FilePath>
             </File>
             <File>
-              <FileName>porttimer_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\porttimer_2.c</FilePath>
-            </File>
-            <File>
               <FileName>porttimer_m_2.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus_2\porttimer_m_2.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_mb_app_2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus_2\user_mb_app_2.c</FilePath>
             </File>
             <File>
               <FileName>user_mb_app_m_2.c</FileName>

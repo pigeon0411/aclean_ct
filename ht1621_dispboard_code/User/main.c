@@ -669,7 +669,7 @@ void cmd_uart_check(void)
                       device_work_data.para_type.wind_speed_state = rx_buff_tmp[6];
                       device_work_data.para_type.high_pressur_state = rx_buff_tmp[7];
 			device_work_data.para_type.pht_work_state = rx_buff_tmp[8];
-			
+			device_work_data.para_type.timing_state = rx_buff_tmp[9];
                   //ljy end 160303
 
 
@@ -782,19 +782,6 @@ int main(void)
 	Ht1621Display();  //PM2.5位置显示	
 #endif	
 
-
-
-//
-//				       Ht1621Tab3[0]= 12;   //PM2.5 高位
-//					Ht1621Tab3[1]= 8;	//PM2.5 
-//					Ht1621Tab3[2]= 7;  //PM2.5 
-//					Ht1621Tab3[3]= 6;	//PM2.5 低位
-//
-//					Ht1621Tab3[7]=3;  // co2 低位
-//					Ht1621Tab3[8]=2;  //co2 
-//					Ht1621Tab3[9]=1;  //co2 
-//					Ht1621Tab3[10]=5;//co2 高位
-//
 
 
 	time_tick_cnt = TICKS_PER_SECOND;

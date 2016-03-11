@@ -90,8 +90,8 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 extern eMBErrorCode	eMBMaster_Send_not_datas(UCHAR * pucFrame, USHORT usLength );
 extern volatile UCHAR  ucMasterRTUSndBuf[256];
 
-u8 mb_switch_flag = 0;
-u8 mb_not_rtu_data_len=0;
+u8 mb_switch_flag_2 = 0;
+u8 mb_not_rtu_data_len_2=0;
 
 eMBMasterReqErrCode
 eMBMasterReqRead_not_rtu_datas_2(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut ) //发送非MODBUS格式的数据
@@ -110,12 +110,12 @@ eMBMasterReqRead_not_rtu_datas_2(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOu
 
         }
 
-        mb_switch_flag=1;
-        mb_not_rtu_data_len = usLength;
+        mb_switch_flag_2=1;
+        mb_not_rtu_data_len_2 = usLength;
 		vMBMasterSetPDUSndLength_2(usLength);
 		( void ) xMBMasterPortEventPost_2( EV_MASTER_FRAME_SENT );
 		eErrStatus = eMBMasterWaitRequestFinish_2( );
-        mb_switch_flag=0;
+        mb_switch_flag_2=0;
     }
     return eErrStatus;
 }

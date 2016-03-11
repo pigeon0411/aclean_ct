@@ -170,7 +170,7 @@ void device_state_init(void)
 	SPI_FLASH_BufferRead(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
 
 	if(sys_para_flag == 0x86)
-		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,6);
 
 
 	device_work_data.para_type.fault_state = 0;
@@ -187,7 +187,7 @@ void device_sys_para_get(void)
 	SPI_FLASH_BufferRead(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
 
 	if(sys_para_flag == 0x86)
-		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+		SPI_FLASH_BufferRead(device_work_data.device_data,SYS_PARA_START_ADDR,6);
 
 
 	device_work_data.para_type.fault_state = 0;
@@ -200,7 +200,7 @@ void device_sys_para_save(void)
 
 		SPI_FLASH_BufferWrite(&sys_para_flag,SYS_PARA_FLAG_ADDR,1);
 
-		SPI_FLASH_BufferWrite(device_work_data.device_data,SYS_PARA_START_ADDR,sizeof(device_work_data.para_type));
+		SPI_FLASH_BufferWrite(device_work_data.device_data,SYS_PARA_START_ADDR,6);
 
 
 }

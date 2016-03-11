@@ -36,10 +36,10 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "mb.h"
-#include "mbframe.h"
-#include "mbproto.h"
-#include "mbconfig.h"
+#include "mb_2.h"
+#include "mbframe_2.h"
+#include "mbproto_2.h"
+#include "mbconfig_2.h"
 
 #if MB_FUNC_OTHER_REP_SLAVEID_ENABLED > 0
 
@@ -50,7 +50,7 @@ static USHORT   usMBSlaveIDLen;
 /* ----------------------- Start implementation -----------------------------*/
 
 eMBErrorCode
-eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
+eMBSetSlaveID_2( UCHAR ucSlaveID, BOOL xIsRunning,
                UCHAR const *pucAdditional, USHORT usAdditionalLen )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
@@ -78,7 +78,7 @@ eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
 }
 
 eMBException
-eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen )
+eMBFuncReportSlaveID_2( UCHAR * pucFrame, USHORT * usLen )
 {
     memcpy( &pucFrame[MB_PDU_DATA_OFF], &ucMBSlaveID[0], ( size_t )usMBSlaveIDLen );
     *usLen = ( USHORT )( MB_PDU_DATA_OFF + usMBSlaveIDLen );

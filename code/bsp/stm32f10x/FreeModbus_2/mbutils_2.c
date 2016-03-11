@@ -36,15 +36,15 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "mb.h"
-#include "mbproto.h"
+#include "mb_2.h"
+#include "mbproto_2.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define BITS_UCHAR      8U
 
 /* ----------------------- Start implementation -----------------------------*/
 void
-xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits,
+xMBUtilSetBits_2( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits,
                 UCHAR ucValue )
 {
     USHORT          usWordBuf;
@@ -83,7 +83,7 @@ xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits,
 }
 
 UCHAR
-xMBUtilGetBits( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits )
+xMBUtilGetBits_2( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits )
 {
     USHORT          usWordBuf;
     USHORT          usMask;
@@ -114,7 +114,7 @@ xMBUtilGetBits( UCHAR * ucByteBuf, USHORT usBitOffset, UCHAR ucNBits )
 }
 
 eMBException
-prveMBError2Exception( eMBErrorCode eErrorCode )
+prveMBError2Exception_2( eMBErrorCode eErrorCode )
 {
     eMBException    eStatus;
 

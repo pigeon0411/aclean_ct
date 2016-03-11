@@ -129,7 +129,7 @@ extern DEVICE_WORK_TYPE device_work_data;
 
 extern eMBMasterReqErrCode eMBMasterReqRead_not_rtu_datas(UCHAR *ucMBFrame, USHORT usLength, LONG lTimeOut );
 
-static u8 rs485_send_buf_not_modbus[50];
+u8 rs485_send_buf_not_modbus[50];
 
 
 void set_dc_motor_speed(u8 speed)
@@ -1963,8 +1963,14 @@ void thread_entry_power_monitor (void* parameter)
             power_tim_cnt++;
 
         //if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60)) // hour
-        
-        if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state))// half minute
+
+		if(power_tim_cnt == ((u32)device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state) )
+		{
+			power_tim_cnt == 0;
+			device_work_data.para_type.timing_state -= 1;
+		}
+		
+        if(power_tim_cnt > ((u32)device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state))// half minute
         {
         	if(device_work_data.para_type.timing_state)
             {
