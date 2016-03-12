@@ -54,6 +54,19 @@ void airclean_power_onoff(u8 mode);
 
 extern void thread_entry_com_displayboard(void* parameter);
 
+extern void set_display_board_data(void);
+extern void thread_entry_ModbusMasterPoll(void* parameter);
+
+
+
+
+
+
+
+
+
+
+
 
 
 u32 power_tim_cnt = 0;
@@ -187,185 +200,185 @@ void set_dc_motor(void)
 
 }
 
-void get_display_board_data(void)
-{
-	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
-	u8 i;
-	static u8 device_power_state_bak = 0xff;
-	
-    rs485_send_buf_not_modbus[0] = 0xF1;
-    rs485_send_buf_not_modbus[1] = 0xF1;
-    rs485_send_buf_not_modbus[2] = 0x01;
-    rs485_send_buf_not_modbus[3] = 0x01;
-    rs485_send_buf_not_modbus[4] = 0x00;
-    rs485_send_buf_not_modbus[5] = 0x02;
-    rs485_send_buf_not_modbus[6] = 0x7E;
+//void get_display_board_data(void)
+//{
+//	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+//	u8 i;
+//	static u8 device_power_state_bak = 0xff;
+//	
+//    rs485_send_buf_not_modbus[0] = 0xF1;
+//    rs485_send_buf_not_modbus[1] = 0xF1;
+//    rs485_send_buf_not_modbus[2] = 0x01;
+//    rs485_send_buf_not_modbus[3] = 0x01;
+//    rs485_send_buf_not_modbus[4] = 0x00;
+//    rs485_send_buf_not_modbus[5] = 0x02;
+//    rs485_send_buf_not_modbus[6] = 0x7E;
 
-    ucMasterRTURcvBuf[0] = 0;
-	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
-	if(errorCode == MB_MRE_REV_DATA)
-	{
-		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
-        {
+//    ucMasterRTURcvBuf[0] = 0;
+//	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+//	if(errorCode == MB_MRE_REV_DATA)
+//	{
+//		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+//        {
 
-        
-    		for(i=0;i<sizeof(struct __para_type);i++)
-			{
-				
-				device_work_data_bak.device_data[i] = device_work_data.device_data[i];
-				
-				
-			}
-
-
-			
-            //device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
-            device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
-
-            if(device_work_data.para_type.device_mode == 1)
-            {
-
-                ;
-            }
-            else
-            {
-
-                device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
-                device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
-                device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
-            }
-
-            device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
-            //device_work_data.para_type.fault_state = ucMasterRTURcvBuf[9];
-
-			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
-
-//			if(device_work_data.para_type.device_mode == 2)
-//				airclean_power_onoff(device_work_data.para_type.device_power_state);
+//        
+//    		for(i=0;i<sizeof(struct __para_type);i++)
+//			{
+//				
+//				device_work_data_bak.device_data[i] = device_work_data.device_data[i];
+//				
+//				
+//			}
 
 
-			
-			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
-			{
-				
-				wifi_factory_set();
+//			
+//            //device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
+//            device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
 
-			}
+//            if(device_work_data.para_type.device_mode == 1)
+//            {
 
-			for(i=0;i<6;i++)
-			{
-				
-				if(device_work_data_bak.device_data[i] != device_work_data.device_data[i])
-				{
+//                ;
+//            }
+//            else
+//            {
 
-					device_sys_para_save();
-					break;
-				}
-				
-				
-			}
+//                device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
+//                device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
+//                device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
+//            }
 
+//            device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
+//            //device_work_data.para_type.fault_state = ucMasterRTURcvBuf[9];
 
-					
+//			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT));
 
-				
-        }      
-		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[6] == 0x7e)
-		{
-
-			device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
-			if(device_power_state_bak == 0xff)
-			{
-
-				device_power_state_bak = ucMasterRTURcvBuf[4];	
-
-				if(ucMasterRTURcvBuf[4])
-				{
-	
-					airclean_power_onoff(ucMasterRTURcvBuf[4]);
-				}
-				else
-					{
-
-					airclean_power_onoff(0);
-					return;
-				}
-				
-				
-			}
-			else
-			{
-
-				if(ucMasterRTURcvBuf[4] != device_power_state_bak)
-				{
-					device_power_state_bak = ucMasterRTURcvBuf[4];
-					
-					airclean_power_onoff(ucMasterRTURcvBuf[4]);
-
-					if(ucMasterRTURcvBuf[4] == 0)
-						return;
-				}
+////			if(device_work_data.para_type.device_mode == 2)
+////				airclean_power_onoff(device_work_data.para_type.device_power_state);
 
 
-				device_power_state_bak = ucMasterRTURcvBuf[4];
-			}
-		}
-	}
-}
+//			
+//			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
+//			{
+//				
+//				wifi_factory_set();
 
-u8 disp_board_packet_data(u8 len)
-{
+//			}
 
-    u8 buftmp[35];
+//			for(i=0;i<6;i++)
+//			{
+//				
+//				if(device_work_data_bak.device_data[i] != device_work_data.device_data[i])
+//				{
 
-    buftmp[0] = 0x01;
-    buftmp[1] = 0x1b;
-
-    u8 i;
-
-    for(i=0;i<27;i++)
-        {
-        buftmp[2+i] = device_work_data.device_data[i];
-
-    }
-
-
-    u8 chk;
+//					device_sys_para_save();
+//					break;
+//				}
+//				
+//				
+//			}
 
 
-    rs485_send_buf_not_modbus[0] = 0xF2;
-    rs485_send_buf_not_modbus[1] = 0xF2;
+//					
 
-    for(i=0;i<len;i++)
-    {
-        rs485_send_buf_not_modbus[i+2] = buftmp[i];
-        chk += buftmp[i];    
-    }
+//				
+//        }      
+//		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[6] == 0x7e)
+//		{
 
-    rs485_send_buf_not_modbus[i+2] = chk;
-    rs485_send_buf_not_modbus[i+3] = 0x7E;
-	
-		return 1;
-}
+//			device_work_data.para_type.device_power_state = ucMasterRTURcvBuf[4];
+//			if(device_power_state_bak == 0xff)
+//			{
+
+//				device_power_state_bak = ucMasterRTURcvBuf[4];	
+
+//				if(ucMasterRTURcvBuf[4])
+//				{
+//	
+//					airclean_power_onoff(ucMasterRTURcvBuf[4]);
+//				}
+//				else
+//					{
+
+//					airclean_power_onoff(0);
+//					return;
+//				}
+//				
+//				
+//			}
+//			else
+//			{
+
+//				if(ucMasterRTURcvBuf[4] != device_power_state_bak)
+//				{
+//					device_power_state_bak = ucMasterRTURcvBuf[4];
+//					
+//					airclean_power_onoff(ucMasterRTURcvBuf[4]);
+
+//					if(ucMasterRTURcvBuf[4] == 0)
+//						return;
+//				}
 
 
-void set_display_board_data(void)
-{
-	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+//				device_power_state_bak = ucMasterRTURcvBuf[4];
+//			}
+//		}
+//	}
+//}
 
-    disp_board_packet_data(33-4);
-
-    ucMasterRTURcvBuf[0] = 0;
-	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,33,RT_WAITING_FOREVER);
-	if(errorCode == MB_MRE_REV_DATA)
-	{
-		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
-        {
-            ;
-        }      
-	}
-}
-
+//u8 disp_board_packet_data(u8 len)
+//{
+//
+//    u8 buftmp[35];
+//
+//    buftmp[0] = 0x01;
+//    buftmp[1] = 0x1b;
+//
+//    u8 i;
+//
+//    for(i=0;i<27;i++)
+//        {
+//        buftmp[2+i] = device_work_data.device_data[i];
+//
+//    }
+//
+//
+//    u8 chk;
+//
+//
+//    rs485_send_buf_not_modbus[0] = 0xF2;
+//    rs485_send_buf_not_modbus[1] = 0xF2;
+//
+//    for(i=0;i<len;i++)
+//    {
+//        rs485_send_buf_not_modbus[i+2] = buftmp[i];
+//        chk += buftmp[i];    
+//    }
+//
+//    rs485_send_buf_not_modbus[i+2] = chk;
+//    rs485_send_buf_not_modbus[i+3] = 0x7E;
+//	
+//		return 1;
+//}
+//
+//
+//void set_display_board_data(void)
+//{
+//	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+//
+//    disp_board_packet_data(33-4);
+//
+//    ucMasterRTURcvBuf[0] = 0;
+//	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,33,RT_WAITING_FOREVER);
+//	if(errorCode == MB_MRE_REV_DATA)
+//	{
+//		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+//        {
+//            ;
+//        }      
+//	}
+//}
+//
 
 FLASH_Status FLASH_Program_save_para(void)
 {
@@ -456,20 +469,26 @@ rt_mutex_t motor_mutex = RT_NULL;
 void thread_entry_SysMonitor(void* parameter)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+    rt_thread_t init_thread;
 
+	init_thread = rt_thread_create("MBMasterPoll",
+								   thread_entry_ModbusMasterPoll, RT_NULL,
+								   512, 9, 50);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
 	
 	
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/20);
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		
 		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 		set_dc_motor();//1s
 		
 		rt_mutex_release(modbus_mutex);
-
+//
 		for(u8 i=11;i<=15;i++)//1s
 		{
 
@@ -1869,12 +1888,12 @@ void rt_main_thread_entry(void* parameter)
 	device_state_init();
 
 	
-	init_thread = rt_thread_create("MBMasterPoll",
-								   thread_entry_ModbusMasterPoll, RT_NULL,
-								   512, 9, 50);
-	if (init_thread != RT_NULL)
-		rt_thread_startup(init_thread);
-
+    init_thread = rt_thread_create("com_disp",
+                                   thread_entry_com_displayboard, RT_NULL,
+                                   1024, 11, 50);
+    if (init_thread != RT_NULL)
+        rt_thread_startup(init_thread);
+	
 
 	rt_thread_delay(RT_TICK_PER_SECOND/2);
 
@@ -1884,16 +1903,11 @@ void rt_main_thread_entry(void* parameter)
 
     init_thread = rt_thread_create("SysMonitor",
                                    thread_entry_SysMonitor, RT_NULL,
-                                   512, 11, 50);
+                                   1024, 11, 50);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 			
 
-    init_thread = rt_thread_create("com_disp",
-                                   thread_entry_com_displayboard, RT_NULL,
-                                   512, 11, 50);
-    if (init_thread != RT_NULL)
-        rt_thread_startup(init_thread);
 			
 
 
@@ -2014,7 +2028,7 @@ int rt_application_init(void)
 
 	init_thread = rt_thread_create("mY",
                                    rt_main_thread_entry, RT_NULL,
-                                   512, 6, 5);
+                                   1024, 6, 5);
     if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
 
@@ -2037,7 +2051,7 @@ int rt_application_init(void)
 
 	init_thread = rt_thread_create("power",
 								   thread_entry_power_monitor, RT_NULL,
-								   256, 9, 50);
+								   512, 9, 50);
 	if (init_thread != RT_NULL)
 		rt_thread_startup(init_thread);
 					

@@ -124,7 +124,7 @@ u8 return_current_device_state(void)
 u8 com_send_packet_data_f1(u8* buf,u8 len)
 {
     u8 i;
-    u8 chk;
+    u8 chk = 0;
 
     wifi_send_packet_buf_pub[0] = 0xF1;
     wifi_send_packet_buf_pub[1] = 0xF1;
@@ -199,6 +199,8 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
 //		}
 //	}
 
+
+
 	
     if (0x00 == Isr_j) 
     {
@@ -214,7 +216,7 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
         else
             rec_data_num = 33;
         
-        rxd1_buffer[Isr_com] = udr1;
+        rxd1_buffer[0] = udr1;
         Isr_com = 1; 
 		Isr_j = 0x01;
 
@@ -251,11 +253,13 @@ void serial_int1_receive(u8 udr1)//receive data from USAR1
     		rxd1_buff_cFlag = 0x01;	
 			time_tick_cnt2 = 0;
 
-			for(u8 i=0;i<rec_data_num;i++)
+			u8 i=0;
+
+			for(i = 0;i<rec_data_num;i++)
 				{
 				in_com_buff[i] = rxd1_buffer[i];
 
-				rxd1_buffer[i] = 0;
+				//rxd1_buffer[i] = 0;
 			}
 
 			
@@ -586,6 +590,8 @@ void fault_check(void)
 
 u8 device_power_state_pre = 0xff;
 
+u8 power_key_state_pre = 0xff;
+
 void cmd_uart_check(void)
 {
 	u8 rx_buff_tmp[40];
@@ -598,26 +604,41 @@ void cmd_uart_check(void)
 		for(u8 i=0;i<40;i++)
 			rx_buff_tmp[i] = in_com_buff[i];
 
+
+		if(in_com_buff[4] == 0x1b)
+			rx_buff_f1 = 1;
 		
-		for(u8 i=0;i<40;i++)
-			in_com_buff[i] = 0;
+//		for(u8 i=0;i<40;i++)
+//			in_com_buff[i] = 0;
 
         if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1 && rx_buff_f1 == 1)
-        {
+      //if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)  
+			{
             if(rx_buff_tmp[2] == 0x01)
             {
+							
+							if(power_key_state_pre==0xff || (power_key_state_pre != power_key_state))
+							{
                 if(power_key_state == 0x01)
                 {//power on
-                    power_key_state = 0xff;
+                    power_key_state_pre = power_key_state;
                     return_device_power_state_change(1);
 
                 }
                 else if(power_key_state == 0x00)
                 {//power off
-                    power_key_state = 0xff;
+                    power_key_state_pre = power_key_state;
                     return_device_power_state_change(0);
                     
                 }
+								
+							}
+							else
+							{
+							
+								return_current_device_state();
+							
+							}								
 		  //rx_buff_f1 = 0 ;
 
             }
@@ -673,7 +694,7 @@ void cmd_uart_check(void)
 			device_work_data.para_type.timing_state = rx_buff_tmp[9];
                   //ljy end 160303
 
-
+		//power_key_state = device_work_data.para_type.device_power_state;
 #if 1
 // 以下部分为收到主板关机命令后，将关闭显示屏，在主函数中仍然需要检测电源按键
 //如果 device_work_data.para_type.device_power_state 为0的时候，屏幕将关闭，直到收到 device_work_data.para_type.device_power_state为1才开启屏幕

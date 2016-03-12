@@ -17,7 +17,9 @@
 #define __BOARD_H__
 
 #include "stm32f10x.h"
+#include "bsp.h"
 
+#if 0
 /* board configuration */
 
 /* whether use board external SRAM memory */
@@ -43,6 +45,7 @@
 #define RT_USING_UART1
 #define RT_USING_UART2
 #define RT_USING_UART4
+#endif
 
 void rt_hw_board_init(void);
 

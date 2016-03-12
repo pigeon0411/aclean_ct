@@ -225,7 +225,7 @@ eMBMaster_Send_not_datas_2(UCHAR * pucFrame, USHORT usLength )//发送非标准的数据
 extern u8 mb_switch_flag_2;
 extern u8 mb_not_rtu_data_len_2;
 extern u8 rs485_send_buf_not_modbus_2[50];
-u8 rs485_send_buf_not_modbus_2[50];
+
 
 eMBErrorCode
 eMBMasterRTUSend_2( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )

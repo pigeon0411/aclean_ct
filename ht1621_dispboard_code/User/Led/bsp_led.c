@@ -9,7 +9,7 @@
 //////////////////////
 
 
-u8 power_key_state = 0xff; //0xff,none change; 0x01,change to power on ;0x00,change to power off
+u8 power_key_state = 0x01; //0xff,none change; 0x01,change to power on ;0x00,change to power off
 
 
 

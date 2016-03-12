@@ -25,23 +25,23 @@
 //Master mode:DiscreteInputs variables
 USHORT   usMDiscInStart_2                             = M_DISCRETE_INPUT_START;
 #if      M_DISCRETE_INPUT_NDISCRETES%8
-UCHAR    ucMDiscInBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_DISCRETE_INPUT_NDISCRETES/8+1];
+UCHAR    ucMDiscInBuf_2[1][M_DISCRETE_INPUT_NDISCRETES/8+1];
 #else
-UCHAR    ucMDiscInBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_DISCRETE_INPUT_NDISCRETES/8];
+UCHAR    ucMDiscInBuf_2[1][M_DISCRETE_INPUT_NDISCRETES/8];
 #endif
 //Master mode:Coils variables
 USHORT   usMCoilStart_2                               = M_COIL_START;
 #if      M_COIL_NCOILS%8
-UCHAR    ucMCoilBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_COIL_NCOILS/8+1];
+UCHAR    ucMCoilBuf_2[1][M_COIL_NCOILS/8+1];
 #else
-UCHAR    ucMCoilBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_COIL_NCOILS/8];
+UCHAR    ucMCoilBuf_2[1][M_COIL_NCOILS/8];
 #endif
 //Master mode:InputRegister variables
 USHORT   usMRegInStart_2                              = M_REG_INPUT_START;
-USHORT   usMRegInBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_INPUT_NREGS];
+USHORT   usMRegInBuf_2[1][M_REG_INPUT_NREGS];
 //Master mode:HoldingRegister variables
 USHORT   usMRegHoldStart_2                            = M_REG_HOLDING_START;
-USHORT   usMRegHoldBuf_2[MB_MASTER_TOTAL_SLAVE_NUM][M_REG_HOLDING_NREGS];
+USHORT   usMRegHoldBuf_2[1][M_REG_HOLDING_NREGS];
 
 
 /**

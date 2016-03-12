@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\..\Output\流水灯.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\..\Output\流水灯.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060061: Last Updated: Fri Mar 11 16:01:16 2016
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060020: Last Updated: Sat Mar 12 17:02:07 2016
 <BR><P>
 <H3>Maximum Stack Usage =        176 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -98,7 +98,7 @@ Global Symbols
 <P><STRONG><a name="[48]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry.o(.ARM.Collect$$$$00000000))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_hd.o(.text)
 </UL>
-<P><STRONG><a name="[92]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
+<P><STRONG><a name="[94]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
 
 <P><STRONG><a name="[49]"></a>_main_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
 <BR><BR>[Calls]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
@@ -108,15 +108,15 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
 </UL>
 
-<P><STRONG><a name="[93]"></a>_main_clock</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7b.o(.ARM.Collect$$$$00000008))
+<P><STRONG><a name="[95]"></a>_main_clock</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7b.o(.ARM.Collect$$$$00000008))
 
-<P><STRONG><a name="[94]"></a>_main_cpp_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry8b.o(.ARM.Collect$$$$0000000A))
+<P><STRONG><a name="[96]"></a>_main_cpp_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry8b.o(.ARM.Collect$$$$0000000A))
 
-<P><STRONG><a name="[95]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry9a.o(.ARM.Collect$$$$0000000B))
+<P><STRONG><a name="[97]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry9a.o(.ARM.Collect$$$$0000000B))
 
-<P><STRONG><a name="[96]"></a>__rt_final_cpp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry10a.o(.ARM.Collect$$$$0000000D))
+<P><STRONG><a name="[98]"></a>__rt_final_cpp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry10a.o(.ARM.Collect$$$$0000000D))
 
-<P><STRONG><a name="[97]"></a>__rt_final_exit</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry11a.o(.ARM.Collect$$$$0000000F))
+<P><STRONG><a name="[99]"></a>__rt_final_exit</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry11a.o(.ARM.Collect$$$$0000000F))
 
 <P><STRONG><a name="[0]"></a>Reset_Handler</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, startup_stm32f10x_hd.o(.text))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_hd.o(RESET)
@@ -302,7 +302,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_main_scatterload
 </UL>
 
-<P><STRONG><a name="[98]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
+<P><STRONG><a name="[9a]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
 
 <P><STRONG><a name="[4c]"></a>APP_USART1_IRQHandler</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, api.o(i.APP_USART1_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = APP_USART1_IRQHandler &rArr; USART_GetITStatus
@@ -318,7 +318,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_USART2_Init
 <LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
+<BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
 </UL>
 
 <P><STRONG><a name="[51]"></a>APP_USART2_IRQHandler</STRONG> (Thumb, 74 bytes, Stack size 8 bytes, api.o(i.APP_USART2_IRQHandler))
@@ -343,7 +343,7 @@ Global Symbols
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB1PeriphClockCmd
 </UL>
 <BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART2_Baudrate
-<LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
+<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
 </UL>
 
 <P><STRONG><a name="[4]"></a>BusFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f10x_it.o(i.BusFault_Handler))
@@ -375,8 +375,8 @@ Global Symbols
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrOneData
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrCmd
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrAllData
-<LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 <LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_USART2_Init
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -387,8 +387,8 @@ Global Symbols
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrOneData
 <LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrCmd
 <LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrAllData
-<LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HT1621_GPIO_Config
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -414,9 +414,9 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621DisplayState
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 
 <P><STRONG><a name="[61]"></a>Ht1621DisplayState</STRONG> (Thumb, 218 bytes, Stack size 40 bytes, bsp_led.o(i.Ht1621DisplayState))
@@ -478,11 +478,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 </UL>
 
-<P><STRONG><a name="[86]"></a>Ht1621_clrbuf</STRONG> (Thumb, 68 bytes, Stack size 0 bytes, bsp_led.o(i.Ht1621_clrbuf))
+<P><STRONG><a name="[87]"></a>Ht1621_clrbuf</STRONG> (Thumb, 68 bytes, Stack size 0 bytes, bsp_led.o(i.Ht1621_clrbuf))
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -491,28 +491,28 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621WrAllData
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[6e]"></a>Ht1621_off_disp</STRONG> (Thumb, 452 bytes, Stack size 0 bytes, bsp_led.o(i.Ht1621_off_disp))
-<BR><BR>[Called By]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
+<BR><BR>[Called By]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
 <LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MainSwitch
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
+<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
 <LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PollingKey
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 
 <P><STRONG><a name="[60]"></a>Ht1621_on_disp</STRONG> (Thumb, 338 bytes, Stack size 0 bytes, bsp_led.o(i.Ht1621_on_disp))
-<BR><BR>[Called By]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
-<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin1_Scan
-<LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin0_Scan
+<BR><BR>[Called By]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
+<LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin1_Scan
+<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin0_Scan
 <LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MainSwitch
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
+<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
 <LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PollingKey
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621Display
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 
 <P><STRONG><a name="[68]"></a>Key_Scan</STRONG> (Thumb, 542 bytes, Stack size 8 bytes, bsp_led.o(i.Key_Scan))
@@ -683,14 +683,14 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_hd.o(RESET)
 </UL>
-<P><STRONG><a name="[8f]"></a>USART_ClearITPendingBit</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, stm32f10x_usart.o(i.USART_ClearITPendingBit))
+<P><STRONG><a name="[91]"></a>USART_ClearITPendingBit</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, stm32f10x_usart.o(i.USART_ClearITPendingBit))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = USART_ClearITPendingBit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_int1_send
 </UL>
 
-<P><STRONG><a name="[91]"></a>USART_Cmd</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_Cmd))
-<BR><BR>[Called By]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
+<P><STRONG><a name="[93]"></a>USART_Cmd</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_Cmd))
+<BR><BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
 </UL>
 
 <P><STRONG><a name="[52]"></a>USART_GetFlagStatus</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_GetFlagStatus))
@@ -704,11 +704,11 @@ Global Symbols
 <LI><a href="#[4c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART1_IRQHandler
 </UL>
 
-<P><STRONG><a name="[90]"></a>USART_ITConfig</STRONG> (Thumb, 74 bytes, Stack size 20 bytes, stm32f10x_usart.o(i.USART_ITConfig))
+<P><STRONG><a name="[92]"></a>USART_ITConfig</STRONG> (Thumb, 74 bytes, Stack size 20 bytes, stm32f10x_usart.o(i.USART_ITConfig))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = USART_ITConfig
 </UL>
-<BR>[Called By]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
+<BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
+<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
 <LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_int1_send
 </UL>
 
@@ -724,34 +724,35 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART2_IRQHandler
 </UL>
 
-<P><STRONG><a name="[8e]"></a>USART_SendData</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_SendData))
+<P><STRONG><a name="[90]"></a>USART_SendData</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, stm32f10x_usart.o(i.USART_SendData))
 <BR><BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_int1_send
 </UL>
 
 <P><STRONG><a name="[5]"></a>UsageFault_Handler</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f10x_it.o(i.UsageFault_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f10x_hd.o(RESET)
 </UL>
-<P><STRONG><a name="[99]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
+<P><STRONG><a name="[9b]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
 
-<P><STRONG><a name="[9a]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
+<P><STRONG><a name="[9c]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
 
-<P><STRONG><a name="[9b]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
+<P><STRONG><a name="[9d]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
 
-<P><STRONG><a name="[7e]"></a>cmd_uart_check</STRONG> (Thumb, 498 bytes, Stack size 48 bytes, main.o(i.cmd_uart_check))
+<P><STRONG><a name="[7e]"></a>cmd_uart_check</STRONG> (Thumb, 524 bytes, Stack size 48 bytes, main.o(i.cmd_uart_check))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = cmd_uart_check &rArr; fault_check &rArr; Ht1621Display &rArr; Ht1621DisplayState &rArr; Ht1621WrOneData &rArr; Ht1621Wr_Data
 </UL>
-<BR>[Calls]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
+<BR>[Calls]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_work_mode_check
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_device_power_state_change
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[83]"></a>com_send_packet_data_f1</STRONG> (Thumb, 72 bytes, Stack size 24 bytes, main.o(i.com_send_packet_data_f1))
+<P><STRONG><a name="[84]"></a>com_send_packet_data_f1</STRONG> (Thumb, 74 bytes, Stack size 24 bytes, main.o(i.com_send_packet_data_f1))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = com_send_packet_data_f1 &rArr; txd1_buffer_send &rArr; USART_ITConfig
 </UL>
-<BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
+<BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_device_power_state_change
 </UL>
@@ -759,9 +760,9 @@ Global Symbols
 <P><STRONG><a name="[5d]"></a>delay_ms</STRONG> (Thumb, 56 bytes, Stack size 0 bytes, bsp_led.o(i.delay_ms))
 <BR><BR>[Called By]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Key_Scan
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HT1621_GPIO_Config
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
+<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 
 <P><STRONG><a name="[65]"></a>delay_us</STRONG> (Thumb, 54 bytes, Stack size 0 bytes, bsp_led.o(i.delay_us))
@@ -773,11 +774,11 @@ Global Symbols
 <LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PollingKey
 </UL>
 
-<P><STRONG><a name="[87]"></a>device_state_init</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, main.o(i.device_state_init))
+<P><STRONG><a name="[88]"></a>device_state_init</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, main.o(i.device_state_init))
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[81]"></a>device_work_mode_check</STRONG> (Thumb, 264 bytes, Stack size 16 bytes, bsp_led.o(i.device_work_mode_check))
+<P><STRONG><a name="[82]"></a>device_work_mode_check</STRONG> (Thumb, 264 bytes, Stack size 16 bytes, bsp_led.o(i.device_work_mode_check))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = device_work_mode_check
 </UL>
 <BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
@@ -786,24 +787,25 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 
-<P><STRONG><a name="[82]"></a>fault_check</STRONG> (Thumb, 190 bytes, Stack size 24 bytes, main.o(i.fault_check))
+<P><STRONG><a name="[83]"></a>fault_check</STRONG> (Thumb, 190 bytes, Stack size 24 bytes, main.o(i.fault_check))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = fault_check &rArr; Ht1621Display &rArr; Ht1621DisplayState &rArr; Ht1621WrOneData &rArr; Ht1621Wr_Data
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
 <LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_off_disp
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621Display
-<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_get_bit
+<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_get_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 
-<P><STRONG><a name="[85]"></a>fault_get_bit</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, main.o(i.fault_get_bit))
-<BR><BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
+<P><STRONG><a name="[86]"></a>fault_get_bit</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, main.o(i.fault_get_bit))
+<BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_check
 </UL>
 
-<P><STRONG><a name="[8d]"></a>fault_set_bit</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, main.o(i.fault_set_bit))
-<BR><BR>[Called By]<UL><LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;reset_wifi
+<P><STRONG><a name="[8e]"></a>fault_set_bit</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, main.o(i.fault_set_bit))
+<BR><BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state
+<LI><a href="#[6f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;reset_wifi
 </UL>
 
 <P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 628 bytes, Stack size 16 bytes, main.o(i.main))
@@ -812,7 +814,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RCC_APB1PeriphClockCmd
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMx_NVIC_Configuration
 <LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMx_Configuration
@@ -820,20 +822,20 @@ Global Symbols
 <LI><a href="#[70]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;PollingKey
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Key_Scan
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_cls
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_clrbuf
+<LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_clrbuf
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HT1621_GPIO_Config
-<LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
-<LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_state_init
+<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart2_init
+<LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;device_state_init
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)
 </UL>
-<P><STRONG><a name="[89]"></a>onoff_Scan</STRONG> (Thumb, 66 bytes, Stack size 8 bytes, bsp_led.o(i.onoff_Scan))
+<P><STRONG><a name="[8a]"></a>onoff_Scan</STRONG> (Thumb, 66 bytes, Stack size 8 bytes, bsp_led.o(i.onoff_Scan))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = onoff_Scan &rArr; Ht1621Display &rArr; Ht1621DisplayState &rArr; Ht1621WrOneData &rArr; Ht1621Wr_Data
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
+<LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_BL
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_cls
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621Display
@@ -841,14 +843,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[80]"></a>onoff_device_set</STRONG> (Thumb, 122 bytes, Stack size 8 bytes, bsp_led.o(i.onoff_device_set))
+<P><STRONG><a name="[81]"></a>onoff_device_set</STRONG> (Thumb, 122 bytes, Stack size 8 bytes, bsp_led.o(i.onoff_device_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = onoff_device_set &rArr; Ht1621Display &rArr; Ht1621DisplayState &rArr; Ht1621WrOneData &rArr; Ht1621Wr_Data
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
-<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
-<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin1_Scan
-<LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin0_Scan
+<LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin6_Scan
+<LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin1_Scan
+<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pin0_Scan
 <LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_BL
 <LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_cls
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621Display
@@ -856,80 +858,98 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 
-<P><STRONG><a name="[8b]"></a>pin0_Scan</STRONG> (Thumb, 16 bytes, Stack size 4 bytes, bsp_led.o(i.pin0_Scan))
+<P><STRONG><a name="[8c]"></a>pin0_Scan</STRONG> (Thumb, 16 bytes, Stack size 4 bytes, bsp_led.o(i.pin0_Scan))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = pin0_Scan
 </UL>
 <BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
 </UL>
 
-<P><STRONG><a name="[8c]"></a>pin1_Scan</STRONG> (Thumb, 10 bytes, Stack size 4 bytes, bsp_led.o(i.pin1_Scan))
+<P><STRONG><a name="[8d]"></a>pin1_Scan</STRONG> (Thumb, 10 bytes, Stack size 4 bytes, bsp_led.o(i.pin1_Scan))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = pin1_Scan
 </UL>
 <BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
 </UL>
 
-<P><STRONG><a name="[8a]"></a>pin6_Scan</STRONG> (Thumb, 48 bytes, Stack size 4 bytes, bsp_led.o(i.pin6_Scan))
+<P><STRONG><a name="[8b]"></a>pin6_Scan</STRONG> (Thumb, 48 bytes, Stack size 4 bytes, bsp_led.o(i.pin6_Scan))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = pin6_Scan
 </UL>
 <BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_on_disp
 <LI><a href="#[6e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Ht1621_off_disp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
-<LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
+<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_device_set
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;onoff_Scan
 </UL>
 
 <P><STRONG><a name="[6f]"></a>reset_wifi</STRONG> (Thumb, 12 bytes, Stack size 4 bytes, main.o(i.reset_wifi))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = reset_wifi
 </UL>
-<BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_set_bit
+<BR>[Calls]<UL><LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_set_bit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MainSwitch
+</UL>
+
+<P><STRONG><a name="[80]"></a>return_current_device_state</STRONG> (Thumb, 60 bytes, Stack size 48 bytes, main.o(i.return_current_device_state))
+<BR><BR>[Stack]<UL><LI>Max Depth = 100<LI>Call Chain = return_current_device_state &rArr; wifi_send_packet_data &rArr; txd1_buffer_send &rArr; USART_ITConfig
+</UL>
+<BR>[Calls]<UL><LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wifi_send_packet_data
+<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fault_set_bit
+</UL>
+<BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 
 <P><STRONG><a name="[7f]"></a>return_device_power_state_change</STRONG> (Thumb, 38 bytes, Stack size 16 bytes, main.o(i.return_device_power_state_change))
 <BR><BR>[Stack]<UL><LI>Max Depth = 68<LI>Call Chain = return_device_power_state_change &rArr; com_send_packet_data_f1 &rArr; txd1_buffer_send &rArr; USART_ITConfig
 </UL>
-<BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;com_send_packet_data_f1
+<BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;com_send_packet_data_f1
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cmd_uart_check
 </UL>
 
-<P><STRONG><a name="[54]"></a>serial_int1_receive</STRONG> (Thumb, 206 bytes, Stack size 0 bytes, main.o(i.serial_int1_receive))
+<P><STRONG><a name="[54]"></a>serial_int1_receive</STRONG> (Thumb, 196 bytes, Stack size 0 bytes, main.o(i.serial_int1_receive))
 <BR><BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART2_IRQHandler
 </UL>
 
 <P><STRONG><a name="[55]"></a>serial_int1_send</STRONG> (Thumb, 126 bytes, Stack size 8 bytes, main.o(i.serial_int1_send))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = serial_int1_send &rArr; USART_ITConfig
 </UL>
-<BR>[Calls]<UL><LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_SendData
-<LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
-<LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ClearITPendingBit
+<BR>[Calls]<UL><LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_SendData
+<LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
+<LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ClearITPendingBit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART2_IRQHandler
 </UL>
 
-<P><STRONG><a name="[84]"></a>txd1_buffer_send</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, main.o(i.txd1_buffer_send))
+<P><STRONG><a name="[85]"></a>txd1_buffer_send</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, main.o(i.txd1_buffer_send))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = txd1_buffer_send &rArr; USART_ITConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
+<LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
 </UL>
-<BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;com_send_packet_data_f1
+<BR>[Called By]<UL><LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;wifi_send_packet_data
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;com_send_packet_data_f1
 </UL>
 
-<P><STRONG><a name="[88]"></a>uart2_init</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, main.o(i.uart2_init))
+<P><STRONG><a name="[89]"></a>uart2_init</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, main.o(i.uart2_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = uart2_init &rArr; APP_USART2_Baudrate &rArr; USART_Init &rArr; RCC_GetClocksFreq
 </UL>
 <BR>[Calls]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_USART2_Init
 <LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;APP_USART2_Baudrate
-<LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
-<LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Cmd
+<LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_ITConfig
+<LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART_Cmd
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[8f]"></a>wifi_send_packet_data</STRONG> (Thumb, 72 bytes, Stack size 24 bytes, main.o(i.wifi_send_packet_data))
+<BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = wifi_send_packet_data &rArr; txd1_buffer_send &rArr; USART_ITConfig
+</UL>
+<BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;txd1_buffer_send
+</UL>
+<BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state
 </UL>
 
 <P><STRONG><a name="[6c]"></a>workspeed_onoff</STRONG> (Thumb, 62 bytes, Stack size 0 bytes, bsp_led.o(i.workspeed_onoff))

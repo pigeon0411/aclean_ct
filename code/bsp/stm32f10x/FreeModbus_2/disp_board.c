@@ -15,11 +15,7 @@ extern eMBMasterReqErrCode	eMBMasterReqRead_not_rtu_datas_2(UCHAR *ucMBFrame, US
 extern void airclean_power_onoff(u8 mode);
 
 
-static u8 rs485_send_buf_not_modbus[50];
-
-
-
-
+u8 rs485_send_buf_not_modbus_2[50];
 
 
 
@@ -31,16 +27,16 @@ static void get_display_board_data(void)
 	u8 i;
 	static u8 device_power_state_bak = 0xff;
 	
-    rs485_send_buf_not_modbus[0] = 0xF1;
-    rs485_send_buf_not_modbus[1] = 0xF1;
-    rs485_send_buf_not_modbus[2] = 0x01;
-    rs485_send_buf_not_modbus[3] = 0x01;
-    rs485_send_buf_not_modbus[4] = 0x00;
-    rs485_send_buf_not_modbus[5] = 0x02;
-    rs485_send_buf_not_modbus[6] = 0x7E;
+    rs485_send_buf_not_modbus_2[0] = 0xF1;
+    rs485_send_buf_not_modbus_2[1] = 0xF1;
+    rs485_send_buf_not_modbus_2[2] = 0x01;
+    rs485_send_buf_not_modbus_2[3] = 0x01;
+    rs485_send_buf_not_modbus_2[4] = 0x00;
+    rs485_send_buf_not_modbus_2[5] = 0x02;
+    rs485_send_buf_not_modbus_2[6] = 0x7E;
 
     ucMasterRTURcvBuf_2[0] = 0;
-	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus_2,7,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_REV_DATA)
 	{
 		if(ucMasterRTURcvBuf_2[0] == 0xF2 && ucMasterRTURcvBuf_2[1] == 0xF2 && ucMasterRTURcvBuf_2[32] == 0x7e)
@@ -171,30 +167,30 @@ static u8 disp_board_packet_data(u8 len)
     u8 chk;
 
 
-    rs485_send_buf_not_modbus[0] = 0xF2;
-    rs485_send_buf_not_modbus[1] = 0xF2;
+    rs485_send_buf_not_modbus_2[0] = 0xF2;
+    rs485_send_buf_not_modbus_2[1] = 0xF2;
 
     for(i=0;i<len;i++)
     {
-        rs485_send_buf_not_modbus[i+2] = buftmp[i];
+        rs485_send_buf_not_modbus_2[i+2] = buftmp[i];
         chk += buftmp[i];    
     }
 
-    rs485_send_buf_not_modbus[i+2] = chk;
-    rs485_send_buf_not_modbus[i+3] = 0x7E;
+    rs485_send_buf_not_modbus_2[i+2] = chk;
+    rs485_send_buf_not_modbus_2[i+3] = 0x7E;
 	
 		return 1;
 }
 
 
-static void set_display_board_data(void)
+void set_display_board_data(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 
     disp_board_packet_data(33-4);
 
     ucMasterRTURcvBuf_2[0] = 0;
-	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus,33,RT_WAITING_FOREVER);
+	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus_2,33,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_REV_DATA)
 	{
 		if(ucMasterRTURcvBuf_2[0] == 0xF2 && ucMasterRTURcvBuf_2[1] == 0xF2 && ucMasterRTURcvBuf_2[32] == 0x7e)
@@ -243,7 +239,7 @@ void thread_entry_com_displayboard(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
 
 

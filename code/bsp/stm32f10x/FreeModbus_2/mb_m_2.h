@@ -358,25 +358,25 @@ eMBMasterReqErrCode
 eMBMasterReqReadDiscreteInputs_2( UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut );
 
 eMBException
-eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReportSlaveID_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadInputRegister_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadHoldingRegister_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteHoldingRegister_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteMultipleHoldingRegister_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadCoils_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteCoil_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncWriteMultipleCoils_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadDiscreteInputs_2( UCHAR * pucFrame, USHORT * usLen );
 eMBException
-eMBMasterFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBMasterFuncReadWriteMultipleHoldingRegister_2( UCHAR * pucFrame, USHORT * usLen );
 
 /*£¡ \ingroup modbus
  *\brief These functions are interface for Modbus Master

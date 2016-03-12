@@ -97,34 +97,34 @@ BOOL( *pxMBMasterFrameCBTransmitFSMCur_2 ) ( void );
 static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #if MB_FUNC_OTHER_REP_SLAVEID_ENABLED > 0
 	//TODO Add Master function define
-    {MB_FUNC_OTHER_REPORT_SLAVEID, eMBFuncReportSlaveID},
+    {MB_FUNC_OTHER_REPORT_SLAVEID, eMBFuncReportSlaveID_2},
 #endif
 #if MB_FUNC_READ_INPUT_ENABLED > 0
-    {MB_FUNC_READ_INPUT_REGISTER, eMBMasterFuncReadInputRegister},
+    {MB_FUNC_READ_INPUT_REGISTER, eMBMasterFuncReadInputRegister_2},
 #endif
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
-    {MB_FUNC_READ_HOLDING_REGISTER, eMBMasterFuncReadHoldingRegister},
+    {MB_FUNC_READ_HOLDING_REGISTER, eMBMasterFuncReadHoldingRegister_2},
 #endif
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
-    {MB_FUNC_WRITE_MULTIPLE_REGISTERS, eMBMasterFuncWriteMultipleHoldingRegister},
+    {MB_FUNC_WRITE_MULTIPLE_REGISTERS, eMBMasterFuncWriteMultipleHoldingRegister_2},
 #endif
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
-    {MB_FUNC_WRITE_REGISTER, eMBMasterFuncWriteHoldingRegister},
+    {MB_FUNC_WRITE_REGISTER, eMBMasterFuncWriteHoldingRegister_2},
 #endif
 #if MB_FUNC_READWRITE_HOLDING_ENABLED > 0
-    {MB_FUNC_READWRITE_MULTIPLE_REGISTERS, eMBMasterFuncReadWriteMultipleHoldingRegister},
+    {MB_FUNC_READWRITE_MULTIPLE_REGISTERS, eMBMasterFuncReadWriteMultipleHoldingRegister_2},
 #endif
 #if MB_FUNC_READ_COILS_ENABLED > 0
-    {MB_FUNC_READ_COILS, eMBMasterFuncReadCoils},
+    {MB_FUNC_READ_COILS, eMBMasterFuncReadCoils_2},
 #endif
 #if MB_FUNC_WRITE_COIL_ENABLED > 0
-    {MB_FUNC_WRITE_SINGLE_COIL, eMBMasterFuncWriteCoil},
+    {MB_FUNC_WRITE_SINGLE_COIL, eMBMasterFuncWriteCoil_2},
 #endif
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-    {MB_FUNC_WRITE_MULTIPLE_COILS, eMBMasterFuncWriteMultipleCoils},
+    {MB_FUNC_WRITE_MULTIPLE_COILS, eMBMasterFuncWriteMultipleCoils_2},
 #endif
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-    {MB_FUNC_READ_DISCRETE_INPUTS, eMBMasterFuncReadDiscreteInputs},
+    {MB_FUNC_READ_DISCRETE_INPUTS, eMBMasterFuncReadDiscreteInputs_2},
 #endif
 };
 
