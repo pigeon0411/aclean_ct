@@ -2,6 +2,7 @@
 #include "user_mb_app_2.h"
 #include "wifi_mod_uart.h"
 #include "delay_conf.h"
+#include "disp_board.h"
 
 #define MB_SER_PDU_SIZE_MAX     256     /*!< Maximum size of a Modbus RTU frame. */
 
@@ -17,15 +18,19 @@ extern void airclean_power_onoff(u8 mode);
 
 u8 rs485_send_buf_not_modbus_2[50];
 
+rt_mutex_t modbus_2_mutex = RT_NULL;
 
 
 
 
-static void get_display_board_data(void)
+//static void get_display_board_data(void)
+void get_display_board_data(void)
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 	u8 i;
 	static u8 device_power_state_bak = 0xff;
+
+	rt_mutex_take(modbus_2_mutex,RT_WAITING_FOREVER);
 	
     rs485_send_buf_not_modbus_2[0] = 0xF1;
     rs485_send_buf_not_modbus_2[1] = 0xF1;
@@ -35,7 +40,7 @@ static void get_display_board_data(void)
     rs485_send_buf_not_modbus_2[5] = 0x02;
     rs485_send_buf_not_modbus_2[6] = 0x7E;
 
-    ucMasterRTURcvBuf_2[0] = 0;
+       ucMasterRTURcvBuf_2[0] = 0; 
 	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus_2,7,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_REV_DATA)
 	{
@@ -58,8 +63,7 @@ static void get_display_board_data(void)
 
             if(device_work_data.para_type.device_mode == 1)
             {
-
-                ;
+            
             }
             else
             {
@@ -145,6 +149,9 @@ static void get_display_board_data(void)
 			}
 		}
 	}
+
+	rt_mutex_release(modbus_2_mutex);
+	
 }
 
 static u8 disp_board_packet_data(u8 len)
@@ -183,13 +190,82 @@ static u8 disp_board_packet_data(u8 len)
 }
 
 
+static u8 send_packet_data(u8 len,u8 *buftmp)
+{
+
+
+    u8 i;
+
+
+    u8 chk;
+
+
+    rs485_send_buf_not_modbus_2[0] = 0xF1;
+    rs485_send_buf_not_modbus_2[1] = 0xF1;
+
+    for(i=0;i<len;i++)
+    {
+        rs485_send_buf_not_modbus_2[i+2] = buftmp[i];
+        chk += buftmp[i];    
+    }
+
+    rs485_send_buf_not_modbus_2[i+2] = chk;
+    rs485_send_buf_not_modbus_2[i+3] = 0x7E;
+	
+		return 1;
+}
+
+
+
+
+void set_dispboard_function_mode(enum DEVICE_CMD_TYPE type,u8 mode)
+{
+
+#if 1
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+
+	u8 tmpbuf[10];
+
+	
+	tmpbuf[0] = (u8)type;
+	tmpbuf[0] = 0x01;
+	tmpbuf[0] = mode;
+
+	rt_mutex_take(modbus_2_mutex,RT_WAITING_FOREVER);
+	
+    send_packet_data(3,tmpbuf);
+
+      ucMasterRTURcvBuf_2[0] = 0; 
+	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus_2,7,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_REV_DATA)
+	{
+		if(ucMasterRTURcvBuf_2[0] == 0xF2 && ucMasterRTURcvBuf_2[1] == 0xF2 && ucMasterRTURcvBuf_2[32] == 0x7e)
+        {
+            ;
+        }      
+	}
+
+	
+	rt_mutex_release(modbus_2_mutex);
+
+	#endif
+}
+
+
+
 void set_display_board_data(void)
 {
+
+#if 1
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+	rt_mutex_take(modbus_2_mutex,RT_WAITING_FOREVER);
+
 
     disp_board_packet_data(33-4);
 
-    ucMasterRTURcvBuf_2[0] = 0;
+      ucMasterRTURcvBuf_2[0] = 0; 
 	errorCode = eMBMasterReqRead_not_rtu_datas_2(rs485_send_buf_not_modbus_2,33,RT_WAITING_FOREVER);
 	if(errorCode == MB_MRE_REV_DATA)
 	{
@@ -198,6 +274,10 @@ void set_display_board_data(void)
             ;
         }      
 	}
+	
+	rt_mutex_release(modbus_2_mutex);
+	#endif
+	
 }
 
 
@@ -228,6 +308,8 @@ void thread_entry_com_displayboard(void* parameter)
 {
     rt_thread_t init_thread;
 
+	modbus_2_mutex = rt_mutex_create("mdbus2mut",RT_IPC_FLAG_FIFO);
+
 
 	init_thread = rt_thread_create("MBMasterPoll",
 								   thread_entry_ModbusMasterPoll_2, RT_NULL,
@@ -246,6 +328,7 @@ void thread_entry_com_displayboard(void* parameter)
 		if(mystate)
 		{
 	        set_display_board_data(); //100ms
+	       
 			mystate=0;
     		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
@@ -258,6 +341,9 @@ void thread_entry_com_displayboard(void* parameter)
     		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 		}
+		
+
+    		rt_thread_delay(RT_TICK_PER_SECOND/10);
 
 	}
 }

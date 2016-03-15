@@ -194,18 +194,34 @@ void rs485_rx_enable(void)
 {
   	GPIO_InitTypeDef GPIOA_InitStructure;
 	
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
 	/* configure the rs485 control pin of the receive or send */
-	GPIOA_InitStructure.GPIO_Pin = RS485_RX_TX_CTL_PIN;
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_1;
 	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(RS485_RX_TX_CTL_PORT, &GPIOA_InitStructure);
+	GPIO_Init(GPIOA, &GPIOA_InitStructure);
 
 	/*设置RS485为接收模式*/
 	//GPIO_ResetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
 
-		GPIO_SetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+	//GPIO_SetBits(GPIOA,GPIO_Pin_1);
+	GPIO_ResetBits(GPIOA,GPIO_Pin_1);
+
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+
+	/* configure the rs485 control pin of the receive or send */
+	GPIOA_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIOA_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIOA_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIOA_InitStructure);
+
+	/*设置RS485为接收模式*/
+	//GPIO_ResetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+
+		//GPIO_SetBits(GPIOC,GPIO_Pin_12);
+	GPIO_ResetBits(GPIOC,GPIO_Pin_12);
 
 }
 
@@ -226,7 +242,9 @@ void ports_initial(void)
 
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	
+
+
+	rs485_rx_enable();
 }
 
 

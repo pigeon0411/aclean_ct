@@ -32,7 +32,7 @@ u8 Ht1621Tab[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 volatile u8 count2=0,count3=0;  //计数
 volatile u8  key4 = 1; //----加一个按键标志//
 volatile u32  time = 0; // ms 计时变量 
-static u16 KeyDownTimes,KeyDoubleTimes;
+
 
 typedef enum    
 {
@@ -620,13 +620,11 @@ void power_onoff(u8 mode) //静电开关
 }
 
 
-
-
-void PollingKey1(void)  //开关机
+void power_Key(void)  //开关机
 {
 
  static u8 KeyStep;
-
+static u16 KeyDownTimes,KeyDoubleTimes;
  switch (KeyStep)
  {
   case 0:
@@ -724,7 +722,7 @@ void PollingKey1(void)  //开关机
    if (KeyPina9)//弹起
    {
 
-    if (KeyDownTimes < 200)
+    if (KeyDownTimes < 400)
     {
      KeyDoubleTimes = 10;
     }
@@ -756,253 +754,12 @@ void PollingKey1(void)  //开关机
 }
 
 
-#if 1
-void Key_Scan(void)   //按键扫描
-{
-	if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON))//静电按键
-      {
-       delay_ms(10);  //---延时10ms
-	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF )  
-      
-	  if(key4==0)
-	  {
-	  	device_work_changing_data.para_type.timing_state = device_work_data.para_type.timing_state;
-
-		device_work_changing_data.para_type.timing_state++;
-		count2 = device_work_changing_data.para_type.timing_state;
-
-		  
-	   if(count2==10)
-	   {
-          count2=0;
-          count3=1;
-	    }   
-	   
-	   if((count3==1)&&(count2>=3))
-	   {
-	    count2=2;
-           count3=1;
-		   device_work_changing_data.para_type.timing_state = 12;
-	   }	 	   
-          Ht1621Tab3[5]=count3;  // 定时时间高位
-           Ht1621Tab3[6]=count2;  //定时时间低位
-
-		   
-		  // device_work_data.para_type.timing_state = count3*10+count2;	  //定时时间显示
-	  }
-	  
-	  else
-	  {
-	   if(device_work_data.para_type.device_mode == 2)//不是智能模式下
-	   	{
-	    	     
-            if(device_work_data.para_type.high_pressur_state == 0)//静电关
-               ESD_onoff(ON); //静电开
-             else
-	       ESD_onoff(OFF); //静电关
-	   	}
-	  }
-	  
-       while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF );     
-	   time = 0;
-     }    
-
-
-      if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )&&(device_work_data.para_type.device_power_state==ON))  // 光氢按键
-      {
-      delay_ms(10); //---延时10ms
-      if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )  
-	 	
-	 if(key4 ==0)
-	  {
-	       if((count3==1)&&(count2 ==0))
-            	{
-            	count3=0;
-		count2=10;
-            	}
-		   
-	     if((count2!=0)&&(count2 > 0))
-	  	{
-			if(device_work_changing_data.para_type.timing_state)
-				device_work_changing_data.para_type.timing_state--;
-	        count2 = (device_work_changing_data.para_type.timing_state);	
-	  	}
-	    else
-	 	{
-               count2 =0;
-			   (device_work_changing_data.para_type.timing_state) = 0;
-	 	}   
-		
-           Ht1621Tab3[5]=count3;  // 定时时间高位
-          Ht1621Tab3[6]=count2;  //定时时间低位
-          device_work_changing_data.para_type.timing_state = count3*10+count2;	 //定时时间显示
-	  }	
-	  else
-	  {
-	    if(device_work_data.para_type.device_mode == 2)   //不是智能模式下
-	    	{
-                if(device_work_data.para_type.pht_work_state == 0)//T2 光氢 关
-                PHT_onoff(ON);//T13 光氢开 
-                 else
-	        PHT_onoff(OFF);//T13 光氢关
-	    	}
-	  }
-	  
-      while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF ) ;  
-	  time = 0;
-      }   
-
-	  
-       if((GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON)) //风速按键
-      {
-       delay_ms(10); //---延时10ms
-       if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF )
-	   	
-	  if(key4!=0)
-	   {
-             if(device_work_data.para_type.wind_speed_state == 0)//风速关
-                 workspeed_onoff(1); //风速低
-            else if(device_work_data.para_type.wind_speed_state == 1)//风速低
-                 workspeed_onoff(2); //风速中 
-           else if (device_work_data.para_type.wind_speed_state == 2)//风速中
-	        workspeed_onoff(3); //风速高
-           else if (device_work_data.para_type.wind_speed_state == 3)//风速高
-               workspeed_onoff(1);//风速低
-             else
-		workspeed_onoff(0); //风速关
-	       
-	    }
-	  
-       while(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) ;   
-	   time = 0;
-      }  
-
-  
-}
-
-#else
-void Key_Scan(void)   //按键扫描
-{
-	if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON))//静电按键
-      {
-       delay_ms(10);  //---延时10ms
-	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF )  
-      
-	  if(key4==0)
-	  {
-	    count2++;
-	      
-	   if(count2==10)
-	   {
-          count2=0;
-          count3=1;
-	    }   
-	   
-	   if((count3==1)&&(count2>=3))
-	   {
-	    count2=2;
-           count3=1;
-	   }	 	   
-          Ht1621Tab3[5]=count3;  // 定时时间高位
-           Ht1621Tab3[6]=count2;  //定时时间低位
-
-		   
-		   device_work_data.para_type.timing_state = count3*10+count2;	  //定时时间显示
-	  }
-	  
-	  else
-	  {
-	   if(device_work_data.para_type.device_mode == 2)//不是智能模式下
-	   	{
-	    	     
-            if(device_work_data.para_type.high_pressur_state == 0)//静电关
-               ESD_onoff(ON); //静电开
-             else
-	       ESD_onoff(OFF); //静电关
-	   	}
-	  }
-	  
-       while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF );     
-	   time = 0;
-     }    
-
-
-      if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )&&(device_work_data.para_type.device_power_state==ON))  // 光氢按键
-      {
-      delay_ms(10); //---延时10ms
-      if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )  
-	 	
-	 if(key4 ==0)
-	  {
-	       if((count3==1)&&(count2 ==0))
-            	{
-            	count3=0;
-		count2=10;
-            	}
-		   
-	     if((count2!=0)&&(count2 > 0))
-	  	{
-	        count2--;	
-	  	}
-	    else
-	 	{
-               count2 =0;
-	 	}   
-		
-           Ht1621Tab3[5]=count3;  // 定时时间高位
-          Ht1621Tab3[6]=count2;  //定时时间低位
-          device_work_data.para_type.timing_state = count3*10+count2;	 //定时时间显示
-	  }	
-	  else
-	  {
-	    if(device_work_data.para_type.device_mode == 2)   //不是智能模式下
-	    	{
-                if(device_work_data.para_type.pht_work_state == 0)//T2 光氢 关
-                PHT_onoff(ON);//T13 光氢开 
-                 else
-	        PHT_onoff(OFF);//T13 光氢关
-	    	}
-	  }
-	  
-      while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF ) ;  
-	  time = 0;
-      }   
-
-	  
-       if((GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON)) //风速按键
-      {
-       delay_ms(10); //---延时10ms
-       if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF )
-	   	
-	  if(key4!=0)
-	   {
-             if(device_work_data.para_type.wind_speed_state == 0)//风速关
-                 workspeed_onoff(1); //风速低
-            else if(device_work_data.para_type.wind_speed_state == 1)//风速低
-                 workspeed_onoff(2); //风速中 
-           else if (device_work_data.para_type.wind_speed_state == 2)//风速中
-	        workspeed_onoff(3); //风速高
-           else if (device_work_data.para_type.wind_speed_state == 3)//风速高
-               workspeed_onoff(1);//风速低
-             else
-		workspeed_onoff(0); //风速关
-	       
-	    }
-	  
-       while(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) ;   
-	   time = 0;
-      }  
-
-  
-}
-#endif
-
-void PollingKey(void)  //智能/手动/定时
+void MainSwitch_Key(void)  //智能/手动/定时
 {
 if(device_work_data.para_type.device_power_state==ON)//电源开
 {
  static u8 KeyStep;
-
+static u16 KeyDownTimes,KeyDoubleTimes;
  switch (KeyStep)
  {
   case 0:
@@ -1031,8 +788,13 @@ if(device_work_data.para_type.device_power_state==ON)//电源开
     
      //printf("\r\n短按处理");
       time = 0;
-	      if( key4 == 0)
-	          key4 = 1;
+	 if(key4 == 0)
+	 	{
+	 	 // device_work_changing_data.para_type.timing_state = device_work_data.para_type.timing_state;
+               device_work_changing_data.para_type.timing_state = count3*10+count2;
+		 key4 = 1;
+	 	}
+
             else if(device_work_data.para_type.device_mode == 1)//智能
                  MainSwitch(2); // 手动
            else if(device_work_data.para_type.device_mode == 2)//手动
@@ -1092,7 +854,7 @@ if(device_work_data.para_type.device_power_state==ON)//电源开
   {
    if (KeyPin)//弹起
    {
-    if (KeyDownTimes < 200)
+    if (KeyDownTimes < 400)
     {
      KeyDoubleTimes = 10;
     }
@@ -1123,6 +885,268 @@ if(device_work_data.para_type.device_power_state==ON)//电源开
 }
 }
 
+void Key_Scan(void)   //按键扫描
+{
+
+   	power_Key(); //开关机
+   	
+   	MainSwitch_Key(); //智能/手动/定时
+   	
+	if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON))//静电按键
+      {
+       delay_ms(10);  //---延时10ms
+	if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF )  
+      
+	  if(key4==0)
+	  {
+
+   	    count2++;
+	      
+	   if(count2==10)
+	   {
+          count2=0;
+          count3=1;
+	    }   
+	   
+	   if((count3==1)&&(count2>=3))
+	   {
+	    count2=2;
+           count3=1;
+	   }	 	   
+          Ht1621Tab3[5]=count3;  // 定时时间高位
+           Ht1621Tab3[6]=count2;  //定时时间低位
+           
+        //  pin6_Scan(); //定时图标
+	/*
+          if( count2==0)
+          	{
+		// device_work_data.para_type.timing_state=1;
+		 Ht1621Tab3[5]=count3;  // 定时时间高位
+             Ht1621Tab3[6]=count2;  //定时时间低位
+              count3=0;
+	      count2=1;	
+          	}
+          else if( count2==1)
+          	{
+		   // device_work_data.para_type.timing_state=2;	
+			 Ht1621Tab3[5]=count3;  // 定时时间高位
+             Ht1621Tab3[6]=count2;  //定时时间低位
+              count3=0;
+	      count2=2;		   
+          	}
+          else if( device_work_data.para_type.timing_state==2)
+		   	 device_work_data.para_type.timing_state=3;
+		   
+         else if( device_work_data.para_type.timing_state==3)
+		  	 device_work_data.para_type.timing_state=4;
+		  
+          else if( device_work_data.para_type.timing_state==4)
+		   	 device_work_data.para_type.timing_state=5;
+		   
+          else if( device_work_data.para_type.timing_state==5)
+		   	 device_work_data.para_type.timing_state=6;
+		   
+         else if( device_work_data.para_type.timing_state==6)
+		  	 device_work_data.para_type.timing_state=7;
+		  
+          else if( device_work_data.para_type.timing_state==7)
+		   	 device_work_data.para_type.timing_state=8;
+		   
+          else if( device_work_data.para_type.timing_state==8)
+		   	 device_work_data.para_type.timing_state=9;
+		   
+          else if( device_work_data.para_type.timing_state==9)
+		   	 device_work_data.para_type.timing_state=0x0A;
+		   
+         else if( device_work_data.para_type.timing_state==0x0A)
+		  	 device_work_data.para_type.timing_state=0x0B;
+		  
+          else if( device_work_data.para_type.timing_state>=0x0B)
+		   	 device_work_data.para_type.timing_state=0x0C;
+		   */
+		  
+	//  device_work_changing_data.para_type.timing_state = device_work_data.para_type.timing_state;
+
+    /*
+		device_work_changing_data.para_type.timing_state++;
+		count2 = device_work_changing_data.para_type.timing_state;
+
+		  
+	   if(count2==10)
+	   {
+          count2=0;
+          count3=1;
+	    }   
+	   
+	   if((count3==1)&&(count2>=3))
+	   {
+	    count2=2;
+           count3=1;
+	  device_work_changing_data.para_type.timing_state = 12;
+	   }	 	   
+        //  Ht1621Tab3[5]=count3;  // 定时时间高位
+          //Ht1621Tab3[6]=count2;  //定时时间低位
+
+		   
+		  // device_work_data.para_type.timing_state = count3*10+count2;	  //定时时间显示
+		  */
+	  }
+	  
+	  else
+	  {
+	   if(device_work_data.para_type.device_mode == 2)//不是智能模式下
+	   	{
+	    	     
+            if(device_work_data.para_type.high_pressur_state == 0)//静电关
+               ESD_onoff(ON); //静电开
+             else
+	       ESD_onoff(OFF); //静电关
+	   	}
+	  }
+	  
+       while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_9) == KEY_OFF );     
+	   time = 0;
+     }    
+
+
+      if((GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )&&(device_work_data.para_type.device_power_state==ON))  // 光氢按键
+      {
+      delay_ms(10); //---延时10ms
+      if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF )  
+	 	
+	 if(key4 ==0)
+	  {
+  
+	    if((count3==1)&&(count2 ==0))
+            	{
+            	count3=0;
+		count2=10;
+            	}
+		   
+	     if((count2!=0)&&(count2 > 0))
+	  	{
+	        count2--;	
+	  	}
+	    else
+	 	{
+               count2 =0;
+	 	}   
+		
+           Ht1621Tab3[5]=count3;  // 定时时间高位
+          Ht1621Tab3[6]=count2;  //定时时间低位
+
+	 // pin6_Scan(); //定时图标
+          /*
+
+            if( device_work_data.para_type.timing_state<=1)
+		 device_work_data.para_type.timing_state=0;
+		  
+          else if( device_work_data.para_type.timing_state==2)
+		    device_work_data.para_type.timing_state=1;	
+		   
+          else if( device_work_data.para_type.timing_state==3)
+		   	 device_work_data.para_type.timing_state=2;
+		   
+         else if( device_work_data.para_type.timing_state==4)
+		  	 device_work_data.para_type.timing_state=3;
+		  
+          else if( device_work_data.para_type.timing_state==5)
+		   	 device_work_data.para_type.timing_state=4;
+		   
+          else if( device_work_data.para_type.timing_state==6)
+		   	 device_work_data.para_type.timing_state=5;
+		   
+         else if( device_work_data.para_type.timing_state==7)
+		  	 device_work_data.para_type.timing_state=6;
+		  
+          else if( device_work_data.para_type.timing_state==8)
+		   	 device_work_data.para_type.timing_state=7;
+		   
+          else if( device_work_data.para_type.timing_state==9)
+		   	 device_work_data.para_type.timing_state=8;
+		   
+          else if( device_work_data.para_type.timing_state==0x0A)
+		   	 device_work_data.para_type.timing_state=9;
+		   
+         else if( device_work_data.para_type.timing_state==0x0B)
+		  	 device_work_data.para_type.timing_state=0x0A;
+		  
+          else if( device_work_data.para_type.timing_state>=0x0C)
+		   	 device_work_data.para_type.timing_state=0x0B;
+
+       */
+
+     //  device_work_changing_data.para_type.timing_state = device_work_data.para_type.timing_state;
+    /*
+	       if((count3==1)&&(count2 ==0))
+            	{
+            	count3=0;
+		count2=10;
+            	}
+		   
+	     if((count2!=0)&&(count2 > 0))
+	  	{
+			if(device_work_changing_data.para_type.timing_state)
+				device_work_changing_data.para_type.timing_state--;
+	        count2 = (device_work_changing_data.para_type.timing_state);	
+	  	}
+	    else
+	 	{
+               count2 =0;
+			   (device_work_changing_data.para_type.timing_state) = 0;
+	 	}   
+		
+          // Ht1621Tab3[5]=count3;  // 定时时间高位
+         // Ht1621Tab3[6]=count2;  //定时时间低位
+         // device_work_changing_data.para_type.timing_state = count3*10+count2;	 //定时时间显示
+
+         */
+	  }	
+	  else
+	  {
+	    if(device_work_data.para_type.device_mode == 2)   //不是智能模式下
+	    	{
+                if(device_work_data.para_type.pht_work_state == 0)//T2 光氢 关
+                PHT_onoff(ON);//T13 光氢开 
+                else
+	        PHT_onoff(OFF);//T13 光氢关
+	    	}
+	  }
+	  
+      while(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_8) == KEY_OFF ) ;  
+	  time = 0;
+      }   
+
+	  
+       if((GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) &&(device_work_data.para_type.device_power_state==ON)) //风速按键
+      {
+       delay_ms(10); //---延时10ms
+       if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF )
+	   	
+	  if(key4!=0)
+	   {
+             if(device_work_data.para_type.wind_speed_state == 0)//风速关
+                 workspeed_onoff(1); //风速低
+            else if(device_work_data.para_type.wind_speed_state == 1)//风速低
+                 workspeed_onoff(2); //风速中 
+           else if (device_work_data.para_type.wind_speed_state == 2)//风速中
+	        workspeed_onoff(3); //风速高
+           else if (device_work_data.para_type.wind_speed_state == 3)//风速高
+               workspeed_onoff(1);//风速低
+             else
+		workspeed_onoff(0); //风速关
+	       
+	    }
+	  
+       while(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_8) == KEY_OFF ) ;   
+	   time = 0;
+      }  
+
+  
+}
+
+
+
 
 void onoff_Scan(void) //按键开关
 {
@@ -1134,17 +1158,17 @@ void onoff_Scan(void) //按键开关
     // pin3_Scan();  //光氢开关
     // pin4_Scan();  //风速
     // pin5_Scan();  //智能/手动/定时
-     pin6_Scan(); //定时图标
-     Ht1621_BL();  //背光
-     HT1621_LED(ON);
+     //pin6_Scan(); //定时图标
+     //Ht1621_BL();  //背光
+    // HT1621_LED(ON);
      Ht1621Display();  //PM2.5位置显示  
       device_work_changing_data.para_type.device_power_state = 1;
      }
      else
      {
      
-     	HT1621_BL(OFF);     //显示背光
-	HT1621_LED(OFF);   //按键背光
+     //HT1621_BL(OFF);     //显示背光
+	//HT1621_LED(OFF);   //按键背光
         Ht1621_cls();         //清屏
        
       // device_work_data.para_type.wind_speed_state = 0;    // 风速
@@ -1179,7 +1203,7 @@ void onoff_device_set(u8 mode) //主板命令开关
     // pin3_Scan();  //光氢开关
      //pin4_Scan();  //风速
     // pin5_Scan();  //智能/手动/定时
-     pin6_Scan(); //智能/手动/定时
+    // pin6_Scan();  //定时图标
      Ht1621_BL();  //背光
      Ht1621Display();  //PM2.5位置显示  
       device_work_data.para_type.device_power_state = 1;
@@ -1223,7 +1247,7 @@ Ht1621_on_disp(4);   //T6 ug/m3/ppm
 
 void pin6_Scan(void)  //定时图标
 { 
-      if(device_work_data.para_type.timing_state!=0)
+      if((device_work_data.para_type.timing_state!=0)||((count2+count3)!=0))
 	 {
           Ht1621_on_disp(5); //T3 关机
           Ht1621_on_disp(6);   //S2 定时H图标
@@ -1259,6 +1283,7 @@ void Ht1621_BL(void) //背光
 void Ht1621Display(void)  //显示
 {
      Ht1621_on_disp(6);   //S2 定时H图标
+      pin6_Scan();  //定时图标
      Ht1621DisplayState(DIS_BUF,Ht1621Tab3,0,12);     //显示
 }
 
@@ -1273,6 +1298,7 @@ void device_work_mode_check(void)  //收到主板按键显示命令
         tmp1 =device_work_data.para_type.wind_speed_state;  //风速
         tmp2 =device_work_data.para_type.high_pressur_state;  //静电 
 	tmp3 =device_work_data.para_type.pht_work_state;        //光氢
+       tmp4 = device_work_data.para_type.timing_state;             //定时
 	
        switch(tmp)
     	{
@@ -1349,19 +1375,112 @@ void device_work_mode_check(void)  //收到主板按键显示命令
 	break;
 	case 0x01:
          Ht1621_on_disp(17);   //T2 光氢开 
-        device_work_data.para_type.pht_work_state = 0;	
+        device_work_data.para_type.pht_work_state = 1;	
 	break;
 	default:  
 	break;
       	}
- 
+
+  if( key4 != 0) 
+  	{
+     switch(tmp4)    //定时
+      {
+    	case 0x00:
+        device_work_data.para_type.timing_state = 0;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=0;			
+	break;
+	case 0x01:
+        device_work_data.para_type.timing_state = 1;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=1;
+	break;
+	case 0x02:
+        device_work_data.para_type.timing_state = 2;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=2;		
+	break;
+	case 0x03:
+       device_work_data.para_type.timing_state = 3;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=3;	   
+	break;	
+    	case 0x04:
+        device_work_data.para_type.timing_state = 4;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=4;		
+	break;
+	case 0x05:
+        device_work_data.para_type.timing_state = 5;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=5;		
+	break;
+	case 0x06:
+        device_work_data.para_type.timing_state = 6;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=6;		
+	break;
+	case 0x07:
+       device_work_data.para_type.timing_state = 7;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=7;	   
+	break;	
+    	case 0x08:
+        device_work_data.para_type.timing_state = 8;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=8;		
+	break;
+	case 0x09:
+        device_work_data.para_type.timing_state = 9;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=0;
+	 count2=9;		
+	break;
+	case 0x0A:
+        device_work_data.para_type.timing_state = 0x0A;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=1;
+	 count2=0;		
+	break;
+	case 0x0B:
+       device_work_data.para_type.timing_state = 0x0B;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=1;
+	 count2=1;	   
+	break;		
+       case 0x0C:
+       device_work_data.para_type.timing_state = 0x0C;
+	 Ht1621Tab3[5]=count3;  // 定时时间高位
+        Ht1621Tab3[6]=count2;  //定时时间低位
+        count3=1;
+	 count2=2;	   
+	break;		
+	default:  	  
+	break;
+     	}
+	 }
 }
-
-
-
-
-
-
 
 /*********************************************END OF FILE**********************/
 

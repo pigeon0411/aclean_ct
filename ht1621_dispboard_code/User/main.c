@@ -617,8 +617,8 @@ void cmd_uart_check(void)
             if(rx_buff_tmp[2] == 0x01)
             {
 							
-							if(power_key_state_pre==0xff || (power_key_state_pre != power_key_state))
-							{
+	if(power_key_state_pre==0xff || (power_key_state_pre != power_key_state))
+	{
                 if(power_key_state == 0x01)
                 {//power on
                     power_key_state_pre = power_key_state;
@@ -632,13 +632,13 @@ void cmd_uart_check(void)
                     
                 }
 								
-							}
-							else
-							{
+	}
+	else
+		{
 							
-								return_current_device_state();
+		return_current_device_state();
 							
-							}								
+		}								
 		  //rx_buff_f1 = 0 ;
 
             }
@@ -817,9 +817,7 @@ int main(void)
   {
 
 		
-        PollingKey1();
         Key_Scan();   //按键扫描
-        PollingKey();
 
          onoff_Scan(); //按键开关
 		

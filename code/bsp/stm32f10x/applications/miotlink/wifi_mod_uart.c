@@ -175,7 +175,6 @@ void device_state_init(void)
 
 	device_work_data.para_type.fault_state = 0;
 
-
 	airclean_power_onoff(1);
 	
 }
@@ -223,17 +222,25 @@ u8 return_current_device_state(void)
     
     if(device_work_data.para_type.device_power_state == 0) //poweroff
     {
-        buftmp[2+1] = 0;
-        buftmp[2+2] = 0;
-        buftmp[2+3] = 0;
+        buftmp[2+1] = 2;//手动02，自动01，//wyh
+        buftmp[2+2] = 0;//风速,0关1低2中3高
+        buftmp[2+3] = 0;//高压1开0关
+        //wyh 0313 add
+        buftmp[2+4] = 0; //光氢1开0关
+        buftmp[2+5] = 0;//定时0关1-12小时
 
     }
     else if(device_work_data.para_type.device_mode == 1)
     {
-
-        buftmp[2+1] = device_work_data_auto.para_type.high_pressur_state;
+/*
+       	buftmp[2+1] = (device_work_data_auto.para_type.high_pressur_state);
 		buftmp[2+2] = (device_work_data_auto.para_type.pht_work_state);
 		buftmp[2+3] = (device_work_data_auto.para_type.wind_speed_state);
+*/
+//wyh 0313 add
+		buftmp[2+2] = (device_work_data_auto.para_type.wind_speed_state);
+       	buftmp[2+3] = (device_work_data_auto.para_type.high_pressur_state);
+		buftmp[2+4] = (device_work_data_auto.para_type.pht_work_state);
 
     }
 
@@ -265,7 +272,7 @@ u8 wifi_receive_data_decode(u8* buf,u8 len)
     case 0x06:
     case 0x07:
         set_device_work_mode(buf[0],buf[2]);
-        return_current_device_state();  
+        return_current_device_state(); 
         break;
     case 0xf7:
         send_F7_packet();

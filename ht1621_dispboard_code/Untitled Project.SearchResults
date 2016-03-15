@@ -1,5 +1,8 @@
----- device_work_data.para_type.pht_work_state = 0 Matches (4 in 2 files) ----
-Bsp_led.c (user\led):       device_work_data.para_type.pht_work_state = 0;   //T2 光氢 
-Bsp_led.c (user\led):       device_work_data.para_type.pht_work_state = 0;   //T2 光氢 
-Bsp_led.c (user\led):            //  device_work_data.para_type.pht_work_state = 0;
-Main.c (user):            device_work_data.para_type.pht_work_state = 0;
+---- return_current_device_state Matches (8 in 2 files) ----
+Main.c (user):u8 return_current_device_state(void)
+Main.c (user):		return_current_device_state();
+流水灯.htm (output):<LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state
+流水灯.htm (output):<BR><BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state
+流水灯.htm (output):<P><STRONG><a name="[81]"></a>return_current_device_state</STRONG> (Thumb, 60 bytes, Stack size 48 bytes, main.o(i.return_current_device_state))
+流水灯.htm (output):<BR><BR>[Stack]<UL><LI>Max Depth = 100<LI>Call Chain = return_current_device_state &rArr; wifi_send_packet_data &rArr; txd1_buffer_send &rArr; USART_ITConfig
+流水灯.htm (output):<BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;return_current_device_state

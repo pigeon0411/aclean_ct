@@ -362,6 +362,7 @@ static void GPIO_Configuration(void)
 	
 	  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 	  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 
@@ -384,7 +385,7 @@ static void GPIO_Configuration(void)
 	//GPIO_ResetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
 
 	/*设置RS485为发送模式*/
- 	GPIO_SetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
+ 	//GPIO_SetBits(RS485_RX_TX_CTL_PORT,RS485_RX_TX_CTL_PIN);
 
 
 #endif /* RT_USING_UART1 */

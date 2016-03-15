@@ -141,16 +141,12 @@ void Ht1621_cls(void);
 void Ht1621_clrbuf(void);
 void Ht1621_off_disp(u8 f) ;
 void Ht1621_on_disp(u8 f); 
-void PollingKey1(void);  //开关机
+void power_Key(void);  //开关机
+void MainSwitch_Key(void);  //智能/手动/定时
 void Key_Scan(void)  ;
-void PollingKey(void);  //智能/手动/定时
 void onoff_Scan(void); //开关
 void pin0_Scan(void) ;
 void pin1_Scan(void) ;
-//void pin2_Scan(void) ;
-//void pin3_Scan(void) ;
-void pin4_Scan(void) ;
-void pin5_Scan(void) ;
 void pin6_Scan(void) ;
 void Ht1621_BL(void);
 void Ht1621Display(void);

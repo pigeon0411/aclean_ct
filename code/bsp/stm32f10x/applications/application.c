@@ -47,6 +47,9 @@
 #include "application.h"
 #include "bsp_spi_flash.h"
 
+#include "disp_board.h"
+
+
 
 extern void fault_set_bit(u8 fault_type,u8 val) ;
 void airclean_power_onoff(u8 mode);
@@ -55,6 +58,7 @@ void airclean_power_onoff(u8 mode);
 extern void thread_entry_com_displayboard(void* parameter);
 
 extern void set_display_board_data(void);
+extern void get_display_board_data(void);
 extern void thread_entry_ModbusMasterPoll(void* parameter);
 
 
@@ -481,14 +485,17 @@ void thread_entry_SysMonitor(void* parameter)
 	while (1)
 	{
 		
-		rt_thread_delay(RT_TICK_PER_SECOND/10);
+		//rt_thread_delay(RT_TICK_PER_SECOND/10);
+		rt_thread_delay(RT_TICK_PER_SECOND/5);
 
 		
 		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 		set_dc_motor();//1s
-		
+
 		rt_mutex_release(modbus_mutex);
-//
+
+
+#if 0
 		for(u8 i=11;i<=15;i++)//1s
 		{
 
@@ -496,6 +503,7 @@ void thread_entry_SysMonitor(void* parameter)
 			rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 			
 			errorCode = eMBMasterReqReadHoldingRegister(i,0,2,RT_WAITING_FOREVER);
+			//errorCode = eMBMasterReqReadHoldingRegister(12,0,2,RT_WAITING_FOREVER);
 
 			if(errorCode == MB_MRE_NO_ERR)
 			{	
@@ -533,7 +541,7 @@ void thread_entry_SysMonitor(void* parameter)
 				
 				//rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
 				
-				//set_display_board_data(); //100ms
+				set_display_board_data(); //100ms
 				//rt_mutex_release(modbus_mutex);
 
 			}
@@ -543,6 +551,8 @@ void thread_entry_SysMonitor(void* parameter)
 			rt_thread_delay(RT_TICK_PER_SECOND/10);
 		
 		}
+
+#endif
 
 #if 0
 			errorCode = eMBMasterReqReadHoldingRegister(1,0,2,RT_WAITING_FOREVER);
@@ -828,16 +838,17 @@ DEVICE_WORK_TYPE device_work_data_bak;
 u8 set_device_work_mode(u8 type,u8 data)
 {
 
-	
+//02开关机，03模式2-手动1-自动，04高压，05光氢，06定时，07风速
+
 	u8 i;
 
 
     if((type != 0x02) && (type != 0x03))
     {// 
-        if(device_work_data.para_type.device_mode == 1)
+        if ((device_work_data.para_type.device_mode == 1) || (device_work_data.para_type.device_power_state == 0))
             return 1;
 
-    }
+    }   //关机、智能模式不设置数据wyh 0314
     
 	for(i=0;i<sizeof(struct __para_type);i++)
 	{
@@ -887,6 +898,7 @@ u8 set_device_work_mode(u8 type,u8 data)
             device_work_data.para_type.pht_work_state = 0;
 
         ac_pht_set(data);
+ 
         break;
     case 0x06:
         if(data<=0x0c)
@@ -904,16 +916,15 @@ u8 set_device_work_mode(u8 type,u8 data)
 		ac_ac_motor_set(data);
         break;
 
-    default:break;
+    default:
+
+		return 1;
 
     }
 
 
-	
-	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-	
-	set_display_board_data(); //100ms
-	rt_mutex_release(modbus_mutex);
+	set_dispboard_function_mode(type,data);
+
 
 
 	for(i=0;i<6;i++)
@@ -1216,7 +1227,7 @@ void airclean_work_auto_handle(void)
 
 	u8 i;
 	u16 co2_tmp,pm25_tmp;
-	
+	u8 device_work_data_pre = 0xff;
 
 
 	if(device_work_data.para_type.device_power_state)
@@ -1224,7 +1235,7 @@ void airclean_work_auto_handle(void)
         if(device_work_data.para_type.device_mode == 1)
         {//auto
 
-
+  
  //////////////////  1
 			 for(i = 0;i<5;i++)
 			 {
@@ -1243,7 +1254,7 @@ void airclean_work_auto_handle(void)
             			(device_work_data_auto.para_type.pht_work_state) = 1;
             			(device_work_data_auto.para_type.wind_speed_state) = 3;
             	            
-
+		device_work_data_pre = 0;
 						 goto LABEL_AUTO_AC_CONTINUE;
 					 }
 			 
@@ -1268,7 +1279,7 @@ void airclean_work_auto_handle(void)
                          device_work_data_auto.para_type.high_pressur_state = 1;
             			(device_work_data_auto.para_type.pht_work_state) = 1;
             			(device_work_data_auto.para_type.wind_speed_state) = 2;
-
+		device_work_data_pre = 0;
 						 goto LABEL_AUTO_AC_CONTINUE;
 					 }
 			 
@@ -1289,13 +1300,15 @@ void airclean_work_auto_handle(void)
 				{
 					if(pm25_tmp < PM2_5_LEVEL1_MAX && co2_tmp < CO2_LEVEL1_MAX)
 		            {
+
+				
 						ac_esd_set(0);
 						ac_pht_set(0);
 						airclean_motor_set(0);
                         device_work_data_auto.para_type.high_pressur_state = 0;
             			(device_work_data_auto.para_type.pht_work_state) = 0;
             			(device_work_data_auto.para_type.wind_speed_state) = 0;
-
+		device_work_data_pre = 0;
 						goto LABEL_AUTO_AC_CONTINUE;
 		            }
 
@@ -1319,6 +1332,11 @@ void airclean_work_auto_handle(void)
 						ac_esd_set(1);
 						ac_pht_set(1);
 						airclean_motor_set(1);
+//wyh
+                        	device_work_data_auto.para_type.high_pressur_state = 1;
+            			(device_work_data_auto.para_type.pht_work_state) = 1;
+            			(device_work_data_auto.para_type.wind_speed_state) = 1;
+								device_work_data_pre = 0;
 						goto LABEL_AUTO_AC_CONTINUE;
 		            }
 
@@ -1326,20 +1344,37 @@ void airclean_work_auto_handle(void)
 				
 
 			}
-		
+		ac_esd_set(0);
+		ac_pht_set(0);
+		airclean_motor_set(0);
+                        	device_work_data_auto.para_type.high_pressur_state = 0;
+            			(device_work_data_auto.para_type.pht_work_state) = 0;
+            			(device_work_data_auto.para_type.wind_speed_state) = 0;
+		device_work_data_pre = 0;
+		goto LABEL_AUTO_AC_CONTINUE;	
             
         }
-        else if(device_work_data.para_type.device_mode == 2)
+        else if(device_work_data.para_type.device_mode == 2 )
         {//manual
-        
-			ac_esd_set(device_work_data.para_type.high_pressur_state);
-			ac_pht_set(device_work_data.para_type.pht_work_state);
-			airclean_motor_set(device_work_data.para_type.wind_speed_state);
-	            
+        		if ( device_work_data_pre == 0)  //标记从自动切换成手动的状态 //wyh 0314
+        			{
+			ac_esd_set(1);
+			ac_pht_set(1);
+			airclean_motor_set(1);
+			device_work_data_pre = 0xff;
+        			} else 
+        				{
+        				ac_esd_set(device_work_data.para_type.high_pressur_state);
+					ac_pht_set(device_work_data.para_type.pht_work_state);
+					if 	(device_work_data.para_type.wind_speed_state == 0)airclean_motor_set(1);//wyh 0313
+					airclean_motor_set(device_work_data.para_type.wind_speed_state);
+					
+        				}
 
         }
-		else if(device_work_data.para_type.device_mode == 0)
-        {//manual
+	/*
+		else if(device_work_data.para_type.device_mode == 0) //wyh 0 
+        {//auto
 
 			
                 ac_esd_set(device_work_data.para_type.high_pressur_state);
@@ -1347,6 +1382,7 @@ void airclean_work_auto_handle(void)
                 airclean_motor_set(device_work_data.para_type.wind_speed_state);
           
         }
+        */
 
     
 //		if(fault_get_bit(FAULT_RESET_WIFI_BIT))
@@ -1358,6 +1394,7 @@ void airclean_work_auto_handle(void)
 		
 LABEL_AUTO_AC_CONTINUE:
        rt_thread_delay(RT_TICK_PER_SECOND/20);
+	
     }
 
 }
@@ -1772,7 +1809,8 @@ void airclean_power_onoff(u8 mode)
     if(mode)
     {//on
 
-		device_sys_para_get();
+	 device_sys_para_get();
+	 
         ac_esd_set(device_work_data.para_type.high_pressur_state);
         ac_pht_set(device_work_data.para_type.pht_work_state);
         ac_ac_motor_set(device_work_data.para_type.wind_speed_state);
@@ -1852,9 +1890,9 @@ void rt_check_ex_device_thread_entry(void* parameter)
     		{
     			if(device_work_data.para_type.fault_state)
     			{
-        			rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+
         			set_display_board_data(); //100ms
-        			rt_mutex_release(modbus_mutex);
+        			
 
     			}
     			fault_state_pre = device_work_data.para_type.fault_state;
@@ -1887,6 +1925,18 @@ void rt_main_thread_entry(void* parameter)
 
 	device_state_init();
 
+	if(device_work_data.para_type.device_mode == 0)
+	{	
+		device_work_data.para_type.device_mode = 2;
+		device_work_data.para_type.high_pressur_state = 1;
+		device_work_data.para_type.pht_work_state = 1;
+		ac_esd_set(1);
+		ac_pht_set(1);
+		ac_ac_motor_set(1);
+	} //读取数据为0时重新初始化；//wyh 0313
+
+
+
 	
     init_thread = rt_thread_create("com_disp",
                                    thread_entry_com_displayboard, RT_NULL,
@@ -1897,9 +1947,9 @@ void rt_main_thread_entry(void* parameter)
 
 	rt_thread_delay(RT_TICK_PER_SECOND/2);
 
-	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-	set_display_board_data(); //100ms
-	rt_mutex_release(modbus_mutex);	
+
+	//set_display_board_data(); //100ms
+
 
     init_thread = rt_thread_create("SysMonitor",
                                    thread_entry_SysMonitor, RT_NULL,
@@ -1915,9 +1965,9 @@ void rt_main_thread_entry(void* parameter)
 	//rt_key_ctl_init();
 	
 	//rt_adc_ctl_init();
-
 	
-    wifi_comm_init();
+	
+    	wifi_comm_init();
 
     	
     init_thread = rt_thread_create("work",
@@ -1943,7 +1993,7 @@ u8 power_state_pre = 0xff;
 
 void thread_entry_power_monitor (void* parameter)
 {
-    
+
     while(1)
     {
 
@@ -1954,6 +2004,8 @@ void thread_entry_power_monitor (void* parameter)
 				
 				power_tim_cnt=0;
 				power_state_pre = device_work_data.para_type.timing_state;
+
+				
 			}
 
 		}
@@ -1966,37 +2018,40 @@ void thread_entry_power_monitor (void* parameter)
 				power_tim_cnt=0;
 				power_state_pre = device_work_data.para_type.timing_state;
 
+
 					}
 			}
 
 		}
 		
-		power_state_pre = device_work_data.para_type.timing_state;
+		power_state_pre = device_work_data.para_type.timing_state; 
 		
         if(power_tim_cnt < 0xFFFFFFFF)
             power_tim_cnt++;
 
         //if(power_tim_cnt > (device_work_data.para_type.timing_state*10*60*60)) // hour
 
-		if(power_tim_cnt == ((u32)device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state) )
+//		if(power_tim_cnt == ((u32)device_work_data.para_type.timing_state*0.01*60*60) && (device_work_data.para_type.timing_state) )
+		if(power_tim_cnt == (0.01*60*60) && (power_state_pre) )
 		{
-			power_tim_cnt == 0;
+			//power_tim_cnt = 0; //? power_tim_cnt == 0
 			device_work_data.para_type.timing_state -= 1;
+			
 		}
 		
-        if(power_tim_cnt > ((u32)device_work_data.para_type.timing_state*10*60*60) && (device_work_data.para_type.timing_state))// half minute
+//            if(power_tim_cnt > ((u32)device_work_data.para_type.timing_state*0.01*60*60) && (device_work_data.para_type.timing_state))// half minute
+              if(power_tim_cnt > ((u32)device_work_data.para_type.timing_state*0.01*60*60) && (power_state_pre))// half minute
         {
-        	if(device_work_data.para_type.timing_state)
-            {
-
-			
-
-				
-				rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+//        	if(device_work_data.para_type.timing_state)
+ 		if(power_state_pre)
+            {	
 				device_work_data.para_type.device_power_state = 0;
+				//wyh
+				device_work_data.para_type.timing_state = 0 ;
+				power_tim_cnt = 0; 
+				power_state_pre = 0xff;
 
-				set_display_board_data(); //100ms
-				rt_mutex_release(modbus_mutex);
+				set_dispboard_function_mode(D_CMD_POWER,0);
 					
 				airclean_power_onoff(0);
 	            //power_tim_cnt = 0;
