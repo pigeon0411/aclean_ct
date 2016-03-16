@@ -139,12 +139,12 @@ void vMBMasterPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable)
 //        rt_pin_write(MODBUS_MASTER_RT_CONTROL_PIN_INDEX, PIN_LOW);
 
 		
-			GPIO_ResetBits(GPIOC,GPIO_Pin_12);
+			GPIO_ResetBits(GPIOA,GPIO_Pin_1);
     }
     else
     {
 		
-			GPIO_SetBits(GPIOC,GPIO_Pin_12);
+			GPIO_SetBits(GPIOA,GPIO_Pin_1);
 
     }
     if (xTxEnable)

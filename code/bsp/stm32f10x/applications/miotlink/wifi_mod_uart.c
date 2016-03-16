@@ -271,7 +271,7 @@ u8 wifi_receive_data_decode(u8* buf,u8 len)
     case 0x05:
     case 0x06:
     case 0x07:
-        set_device_work_mode(buf[0],buf[2]);
+        set_device_work_mode(buf[0],buf[2],1);
         return_current_device_state(); 
         break;
     case 0xf7:

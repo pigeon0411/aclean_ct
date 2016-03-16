@@ -17,6 +17,12 @@ u8 cmd_send_lenth;
 u8 rx_buff_f1 = 0;
 
 extern u32 time_tick_cnt;
+extern u32 time_tick_cnt1;
+
+#define TICKS_PER_SECOND            1000//7000
+
+#define TICKS_PER_SECOND1            700//7000
+
 void fault_set_bit(u8 fault_type,u8 val);
 
 
@@ -146,14 +152,14 @@ u8 com_send_packet_data_f1(u8* buf,u8 len)
 
 
 //mode: 0,off; 1,on
-u8 return_device_power_state_change(u8 mode)
+u8 return_device_power_state_change(u8 Function,u8 mode)
 {
     u8 buftmp[8];
 
-    if(mode > 1)
-        mode = 1;
+   // if(mode > 1)
+    //    mode = 1;
 
-    buftmp[0] = 0x02;
+    buftmp[0] = Function;
     buftmp[1] = 0x01;
     buftmp[2] = mode;
 
@@ -588,6 +594,126 @@ void fault_check(void)
 //ljy end 160302 
 #endif
 
+
+/*
+
+u8 board_receive_data_decode(u8* buf,u8 len)
+{
+//    u8 i;
+//    u8 chk;
+    
+    switch(buf[0])
+    {
+    case 0x01:
+       // return_current_device_state();   
+        break;
+    case 0x02:
+    case 0x03:        
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07:
+        set_device_work_mode(buf[0],buf[2]);
+       // return_current_device_state(); 
+        break;
+    case 0xf7:
+      //  send_F7_packet();
+        break;
+
+    default:break;       
+    }
+
+    return 1;
+}
+
+
+
+u8 set_board_device_work_mode(u8 type,u8 data)
+{
+
+//02开关机，03模式2-手动1-自动，04高压，05光氢，06定时，07风速
+
+	u8 i;
+
+
+    if((type != 0x02) && (type != 0x03))
+    {// 
+        if ((device_work_data.para_type.device_mode == 1) || (device_work_data.para_type.device_power_state == 0))
+            return 1;
+
+    }   //关机、智能模式不设置数据wyh 0314
+    
+	for(i=0;i<sizeof(struct __para_type);i++)
+	{
+		
+		device_work_data_bak.device_data[i] = device_work_data.device_data[i];
+		
+	}
+	
+//	if(device_work_data.para_type.device_mode == 1)
+//		return 1;
+
+
+    switch(type)
+        {
+    case 0x02:
+        if(data)
+        {    device_work_data.para_type.device_power_state = 1;
+            //airclean_power_onoff(1);
+		}
+        else
+        {    device_work_data.para_type.device_power_state = 0;
+            //airclean_power_onoff(0);
+        }
+        break;
+    case 0x03:
+        if(data==1||data==2)
+            device_work_data.para_type.device_mode = data;
+         
+        break;
+    case 0x04:
+        if(data)
+            device_work_data.para_type.high_pressur_state = 1;
+        else
+            device_work_data.para_type.high_pressur_state = 0;
+
+        
+        break;
+    case 0x05:
+        if(data)
+            device_work_data.para_type.pht_work_state = 1;
+        else
+            device_work_data.para_type.pht_work_state = 0;
+
+        //ac_pht_set(data);
+ 
+        break;
+    case 0x06:
+        if(data<=0x0c)
+            device_work_data.para_type.timing_state = data;
+        else
+            device_work_data.para_type.timing_state = 0;
+
+        
+        break;
+    case 0x07:
+        if(data<=3)
+            device_work_data.para_type.wind_speed_state = data;
+        //set_dc_motor_speed(data);
+
+		//ac_ac_motor_set(data);
+        break;
+
+    default:
+	break;
+
+    }
+
+
+*/
+
+
+
 u8 device_power_state_pre = 0xff;
 
 u8 power_key_state_pre = 0xff;
@@ -595,7 +721,7 @@ u8 power_key_state_pre = 0xff;
 void cmd_uart_check(void)
 {
 	u8 rx_buff_tmp[40];
-	
+
 	
     if(rxd1_buff_cFlag)
     {
@@ -604,48 +730,174 @@ void cmd_uart_check(void)
 		for(u8 i=0;i<40;i++)
 			rx_buff_tmp[i] = in_com_buff[i];
 
-
-		if(in_com_buff[4] == 0x1b)
-			rx_buff_f1 = 1;
 		
-//		for(u8 i=0;i<40;i++)
-//			in_com_buff[i] = 0;
+		for(u8 i=0;i<40;i++)
+			in_com_buff[i] = 0;
 
-        if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1 && rx_buff_f1 == 1)
-      //if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)  
-			{
-            if(rx_buff_tmp[2] == 0x01)
+
+        if(rx_buff_tmp[0] == 0xF1 && rx_buff_tmp[1] == 0xf1)
+        {
+           u8 type,data;
+             type=rx_buff_tmp[2];
+            data=rx_buff_tmp[4];
+     
+        switch(type)
+        {
+          case 0x02:
+        if(data)
+        {    device_work_data.para_type.device_power_state = 1;
+            //airclean_power_onoff(1);
+		}
+        else
+        {    device_work_data.para_type.device_power_state = 0;
+            //airclean_power_onoff(0);
+        }
+        break;
+         case 0x03:
+           if(data==1||data==2)
+            device_work_data.para_type.device_mode = data;
+         
+        break;
+         case 0x04:
+        if(data)
+            device_work_data.para_type.high_pressur_state = 1;
+        else
+            device_work_data.para_type.high_pressur_state = 0;
+
+        
+        break;
+          case 0x05:
+        if(data)
+            device_work_data.para_type.pht_work_state = 1;
+        else
+            device_work_data.para_type.pht_work_state = 0;
+
+        //ac_pht_set(data);
+ 
+        break;
+         case 0x06:
+        if((data<=0x0c)&&(data!=0))
+            device_work_data.para_type.timing_state = data;
+        else
+            device_work_data.para_type.timing_state = 0;
+
+        
+        break;
+         case 0x07:
+        if(data<=3)
+            device_work_data.para_type.wind_speed_state = data;
+        //set_dc_motor_speed(data);
+
+		//ac_ac_motor_set(data);
+        break;
+
+    default:
+	break;
+
+    }
+
+     device_work_mode_check();  //收到主板按键显示命令
+    			//delay_ms(50);
+			//Ht1621Display(); 
+
+            if(rx_buff_f1 == 0)
             {
-							
-	if(power_key_state_pre==0xff || (power_key_state_pre != power_key_state))
-	{
-                if(power_key_state == 0x01)
-                {//power on
-                    power_key_state_pre = power_key_state;
-                    return_device_power_state_change(1);
 
+		if(power_key_state == 0x01)                                  //电源开关变化发送数据
+                {//power on
+                    power_key_state = 0xff;
+                    return_device_power_state_change(2,1);
+                     time_tick_cnt1=0;
                 }
                 else if(power_key_state == 0x00)
                 {//power off
-                    power_key_state_pre = power_key_state;
-                    return_device_power_state_change(0);
-                    
+                    power_key_state = 0xff;
+                    return_device_power_state_change(2,0);
+                    time_tick_cnt1=0;
                 }
-								
-	}
-	else
-		{
-							
-		return_current_device_state();
-							
-		}								
-		  //rx_buff_f1 = 0 ;
+
+           
+
+               else  if(mode_key_state == 0x01)                         //智能/手动/定时按键状态发送数据
+                {//mode on
+                    mode_key_state = 0xff;
+                    return_device_power_state_change(3,1);
+                    time_tick_cnt1=0;
+                }
+                else if(mode_key_state == 0x02)
+                {//mode off
+                    mode_key_state = 0xff;
+                    return_device_power_state_change(3,2);
+                    time_tick_cnt1=0;
+                }
+
+
+               else  if(PHT_key_state == 0x01)                           // 光氢按键按键状态发送数据
+                {//mode on
+                    PHT_key_state = 0xff;
+                    return_device_power_state_change(5,1);
+                    time_tick_cnt1=0;
+                }
+                else if(PHT_key_state == 0x00)
+                {//mode off
+                    PHT_key_state = 0xff;
+                    return_device_power_state_change(5,0);
+                    time_tick_cnt1=0;
+                }
+ 
+               else  if(workspeed_key_state == 0x01)                           //风速按键按键状态发送数据
+                {//mode on
+                    workspeed_key_state = 0xff;
+                    return_device_power_state_change(7,1);
+                    time_tick_cnt1=0;
+                }
+                
+                else if(workspeed_key_state == 0x02)
+                {//mode off
+                    workspeed_key_state = 0xff;
+                    return_device_power_state_change(7,2);
+                    time_tick_cnt1=0;
+                }
+		   
+                else if(workspeed_key_state == 0x03)
+                {//mode off
+                    workspeed_key_state = 0xff;
+                    return_device_power_state_change(7,3);
+                    time_tick_cnt1=0;
+                }
+
+
+			   
+							 
+               else  if(ESD_key_state == 0x01)                              //静电按键按键状态发送数据
+                {//mode on
+                    ESD_key_state = 0xff;
+                    return_device_power_state_change(4,1);
+                    time_tick_cnt1=0;
+                }
+                else if(ESD_key_state == 0x00)
+                {//mode off
+                    ESD_key_state = 0xff;
+                    return_device_power_state_change(4,0);
+                    time_tick_cnt1=0;
+                }
+
+		
+               else if(time_tick_cnt1> TICKS_PER_SECOND1)
+               	{
+                return_device_power_state_change(1,0);
+		time_tick_cnt1=0;
+               	}
 
             }
+             
+
         }
-        else if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2 )
+
+
+         if(rx_buff_tmp[0] == 0xF2 && rx_buff_tmp[1] == 0xf2 )
         {
-		rx_buff_f1 = 1;
+		//rx_buff_f1 = 1;
             device_work_data.para_type.house1_co2 = (u16)rx_buff_tmp[12]<<8;
 			device_work_data.para_type.house1_co2 += (u16)rx_buff_tmp[13];
 			
@@ -684,18 +936,17 @@ void cmd_uart_check(void)
 
 			device_work_data.para_type.fault_state = rx_buff_tmp[30];
 
-			device_work_data.para_type.device_power_state = rx_buff_tmp[4];
-
-			//ljy start 160303 
+			
+                	 //ljy start 160303 
+	     		device_work_data.para_type.device_power_state = rx_buff_tmp[4];
                      device_work_data.para_type.device_mode = rx_buff_tmp[5];
                       device_work_data.para_type.wind_speed_state = rx_buff_tmp[6];
                       device_work_data.para_type.high_pressur_state = rx_buff_tmp[7];
 			device_work_data.para_type.pht_work_state = rx_buff_tmp[8];
-			device_work_data.para_type.timing_state = rx_buff_tmp[9];
                   //ljy end 160303
+                  
 
-		//power_key_state = device_work_data.para_type.device_power_state;
-#if 1
+#if 0
 // 以下部分为收到主板关机命令后，将关闭显示屏，在主函数中仍然需要检测电源按键
 //如果 device_work_data.para_type.device_power_state 为0的时候，屏幕将关闭，直到收到 device_work_data.para_type.device_power_state为1才开启屏幕
 //或者直到按显示板的电源键才开开启显示
@@ -719,9 +970,7 @@ void cmd_uart_check(void)
 			device_work_mode_check();  //收到主板按键显示命令
 			fault_check();                          //收到主板故障代码命令
                     
-
-			for(u8 i=0;i<7;i++)
-				device_work_changing_data.device_data[i] = device_work_data.device_data[i];
+			
      
         }
 
@@ -730,7 +979,8 @@ void cmd_uart_check(void)
 }
 
 
-#define TICKS_PER_SECOND            1000//7000
+
+
 u8 house_id = 0;
 
 extern volatile u8 Ht1621Tab3[];
@@ -806,11 +1056,9 @@ int main(void)
 	Ht1621Display();  //PM2.5位置显示	
 #endif	
 
-
-
 	time_tick_cnt = TICKS_PER_SECOND;
 
-
+    time_tick_cnt1 = TICKS_PER_SECOND1;
 
 
   while(1)

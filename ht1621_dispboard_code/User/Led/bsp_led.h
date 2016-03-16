@@ -42,6 +42,10 @@ typedef union __DEVICE_WORK_TYPE {
 
 extern DEVICE_WORK_TYPE device_work_data;
 extern u8 power_key_state;
+extern u8 mode_key_state;
+extern u8 PHT_key_state;
+extern u8 workspeed_key_state;
+extern u8 ESD_key_state;
 
 //#ifndef __HT1621_H
 

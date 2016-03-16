@@ -462,6 +462,297 @@ rt_mutex_t modbus_mutex = RT_NULL;
 rt_mutex_t motor_mutex = RT_NULL;
 
 
+void thread_dc_motor_set(void* parameter)
+{
+
+	u8 dc_motor_state_pre = 0xff;
+	
+	while (1)
+	{
+		
+		//rt_thread_delay(RT_TICK_PER_SECOND/10);
+		rt_thread_delay(RT_TICK_PER_SECOND/2);
+
+		
+		set_dc_motor();//1s
+
+
+		
+	}
+}
+
+
+
+void get_display_board_data(void)
+{
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+	u8 i;
+	static u8 device_power_state_bak = 0xff;
+
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+	
+    rs485_send_buf_not_modbus[0] = 0xF1;
+    rs485_send_buf_not_modbus[1] = 0xF1;
+    rs485_send_buf_not_modbus[2] = 0x01;
+    rs485_send_buf_not_modbus[3] = 0x01;
+    rs485_send_buf_not_modbus[4] = 0x00;
+    rs485_send_buf_not_modbus[5] = 0x02;
+    rs485_send_buf_not_modbus[6] = 0x7E;
+
+       ucMasterRTURcvBuf[0] = 0; 
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_REV_DATA)
+	{
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+        {
+
+        
+    		for(i=0;i<sizeof(struct __para_type);i++)
+			{
+				
+				device_work_data_bak.device_data[i] = device_work_data.device_data[i];
+				
+				
+			}
+
+
+			
+            //device_work_data.para_type.device_power_state = ucMasterRTURcvBuf_2[4];
+            device_work_data.para_type.device_mode = ucMasterRTURcvBuf[5];
+
+            if(device_work_data.para_type.device_mode == 1)
+            {
+            
+            }
+            else
+            {
+
+                device_work_data.para_type.wind_speed_state = ucMasterRTURcvBuf[6];
+                device_work_data.para_type.high_pressur_state = ucMasterRTURcvBuf[7];
+                device_work_data.para_type.pht_work_state = ucMasterRTURcvBuf[8];
+            }
+
+            device_work_data.para_type.timing_state = ucMasterRTURcvBuf[9];
+            //device_work_data.para_type.fault_state = ucMasterRTURcvBuf_2[9];
+
+			//fault_set_bit(FAULT_RESET_WIFI_BIT,ucMasterRTURcvBuf_2[30]&(1<<FAULT_RESET_WIFI_BIT));
+
+//			if(device_work_data.para_type.device_mode == 2)
+//				airclean_power_onoff(device_work_data.para_type.device_power_state);
+
+
+			
+			if(ucMasterRTURcvBuf[30]&(1<<FAULT_RESET_WIFI_BIT))
+			{
+				
+				wifi_factory_set();
+
+			}
+
+			for(i=0;i<6;i++)
+			{
+				
+				if(device_work_data_bak.device_data[i] != device_work_data.device_data[i])
+				{
+
+					device_sys_para_save();
+					break;
+				}
+				
+				
+			}
+
+				
+        }      
+		else if(ucMasterRTURcvBuf[0] == 0xF1 && ucMasterRTURcvBuf[1] == 0xF1 && ucMasterRTURcvBuf[6] == 0x7e)
+		{
+
+			if((ucMasterRTURcvBuf[2] <=7) && (ucMasterRTURcvBuf[2] > 1))
+			{
+			
+			set_device_work_mode(ucMasterRTURcvBuf[2],ucMasterRTURcvBuf[4],0);
+
+
+			}
+
+
+			
+		}
+	}
+
+	rt_mutex_release(modbus_mutex);
+	
+}
+
+static u8 disp_board_packet_data(u8 len)
+{
+
+    u8 buftmp[35];
+
+    buftmp[0] = 0x01;
+    buftmp[1] = 0x1b;
+
+    u8 i;
+
+    for(i=0;i<27;i++)
+        {
+        buftmp[2+i] = device_work_data.device_data[i];
+
+    }
+
+
+    u8 chk;
+
+
+    rs485_send_buf_not_modbus[0] = 0xF2;
+    rs485_send_buf_not_modbus[1] = 0xF2;
+
+    for(i=0;i<len;i++)
+    {
+        rs485_send_buf_not_modbus[i+2] = buftmp[i];
+        chk += buftmp[i];    
+    }
+
+    rs485_send_buf_not_modbus[i+2] = chk;
+    rs485_send_buf_not_modbus[i+3] = 0x7E;
+	
+		return 1;
+}
+
+
+static u8 send_packet_data(u8 len,u8 *buftmp)
+{
+
+
+    u8 i;
+
+
+    u8 chk;
+
+
+    rs485_send_buf_not_modbus[0] = 0xF1;
+    rs485_send_buf_not_modbus[1] = 0xF1;
+
+    for(i=0;i<len;i++)
+    {
+        rs485_send_buf_not_modbus[i+2] = buftmp[i];
+        chk += buftmp[i];    
+    }
+
+    rs485_send_buf_not_modbus[i+2] = chk;
+    rs485_send_buf_not_modbus[i+3] = 0x7E;
+	
+		return 1;
+}
+
+
+
+
+void set_dispboard_function_mode(enum DEVICE_CMD_TYPE type,u8 mode)
+{
+
+#if 1
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+
+	u8 tmpbuf[10];
+
+	
+	tmpbuf[0] = (u8)type;
+	tmpbuf[0] = 0x01;
+	tmpbuf[0] = mode;
+
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+	
+    send_packet_data(3,tmpbuf);
+
+      ucMasterRTURcvBuf[0] = 0; 
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,7,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_REV_DATA)
+	{
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+        {
+            ;
+        }      
+	}
+
+	
+	rt_mutex_release(modbus_mutex);
+
+	#endif
+}
+
+
+
+void set_display_board_data(void)
+{
+
+#if 1
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+
+	rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
+
+
+    disp_board_packet_data(33-4);
+
+      ucMasterRTURcvBuf[0] = 0; 
+	errorCode = eMBMasterReqRead_not_rtu_datas(rs485_send_buf_not_modbus,33,RT_WAITING_FOREVER);
+	if(errorCode == MB_MRE_REV_DATA)
+	{
+		if(ucMasterRTURcvBuf[0] == 0xF2 && ucMasterRTURcvBuf[1] == 0xF2 && ucMasterRTURcvBuf[32] == 0x7e)
+        {
+            ;
+        }      
+	}
+	
+	rt_mutex_release(modbus_mutex);
+	#endif
+	
+}
+
+
+
+
+void thread_disp_board_set_handle(void* parameter)
+{
+
+	
+	u8 mystate;
+	while (1)
+	{
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+
+
+	    set_display_board_data(); //100ms
+	       
+
+
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+
+	}
+
+}
+
+void thread_disp_board_get_handle(void* parameter)
+{
+
+	
+	u8 mystate;
+	while (1)
+	{
+		
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+
+		get_display_board_data(); //1s
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+
+	}
+
+}
+
+
+
 //***************************系统监控线程***************************
 //函数定义: void thread_entry_SysRunLed(void* parameter)
 //入口参数：无
@@ -477,25 +768,41 @@ void thread_entry_SysMonitor(void* parameter)
 
 	init_thread = rt_thread_create("MBMasterPoll",
 								   thread_entry_ModbusMasterPoll, RT_NULL,
-								   512, 9, 50);
+								   512, 20, 30);
 	if (init_thread != RT_NULL)
 		rt_thread_startup(init_thread);
 	
+
+	init_thread = rt_thread_create("disp",
+								   thread_disp_board_get_handle, RT_NULL,
+								   512, 9, 30);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+
+	init_thread = rt_thread_create("dispset",
+								   thread_disp_board_set_handle, RT_NULL,
+								   512, 9, 30);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+
+
+
+	init_thread = rt_thread_create("dcm",
+								   thread_dc_motor_set, RT_NULL,
+								   512, 20, 300);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
+
+
 	
 	while (1)
 	{
 		
-		//rt_thread_delay(RT_TICK_PER_SECOND/10);
-		rt_thread_delay(RT_TICK_PER_SECOND/5);
-
-		
-		rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-		set_dc_motor();//1s
-
-		rt_mutex_release(modbus_mutex);
+		rt_thread_delay(RT_TICK_PER_SECOND/10);
+		//rt_thread_delay(RT_TICK_PER_SECOND);
 
 
-#if 0
+#if 1
 		for(u8 i=11;i<=15;i++)//1s
 		{
 
@@ -538,17 +845,11 @@ void thread_entry_SysMonitor(void* parameter)
 				}		  
 				
 
-				
-				//rt_mutex_take(modbus_mutex,RT_WAITING_FOREVER);
-				
-				set_display_board_data(); //100ms
-				//rt_mutex_release(modbus_mutex);
-
 			}
 
 			rt_mutex_release(modbus_mutex);
 
-			rt_thread_delay(RT_TICK_PER_SECOND/10);
+			rt_thread_delay(RT_TICK_PER_SECOND/5);
 		
 		}
 
@@ -712,7 +1013,7 @@ void thread_entry_SysMonitor(void* parameter)
 //******************************************************************
 void thread_entry_ModbusMasterPoll(void* parameter)
 {
-	eMBMasterInit(MB_RTU, 4, 9600,  MB_PAR_NONE);
+	eMBMasterInit(MB_RTU, 2, 9600,  MB_PAR_NONE);
 	eMBMasterEnable();
         extern struct rt_serial_device serial1;
 
@@ -835,7 +1136,7 @@ void ac_workmode_set(u8 mode)
 
 DEVICE_WORK_TYPE device_work_data_bak;
 
-u8 set_device_work_mode(u8 type,u8 data)
+u8 set_device_work_mode(u8 type,u8 data,u8 signal_ch)
 {
 
 //02开关机，03模式2-手动1-自动，04高压，05光氢，06定时，07风速
@@ -922,8 +1223,8 @@ u8 set_device_work_mode(u8 type,u8 data)
 
     }
 
-
-	set_dispboard_function_mode(type,data);
+	if(signal_ch == 1)//wifi
+		set_dispboard_function_mode(type,data);
 
 
 
@@ -1938,11 +2239,11 @@ void rt_main_thread_entry(void* parameter)
 
 
 	
-    init_thread = rt_thread_create("com_disp",
-                                   thread_entry_com_displayboard, RT_NULL,
-                                   1024, 11, 50);
-    if (init_thread != RT_NULL)
-        rt_thread_startup(init_thread);
+//    init_thread = rt_thread_create("com_disp",
+//                                   thread_entry_com_displayboard, RT_NULL,
+//                                   1024, 11, 50);
+//    if (init_thread != RT_NULL)
+//        rt_thread_startup(init_thread);
 	
 
 	rt_thread_delay(RT_TICK_PER_SECOND/2);

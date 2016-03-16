@@ -140,6 +140,7 @@ void PendSV_Handler(void)
   * @retval None
   */
 u32 time_tick_cnt = 0;
+u32 time_tick_cnt1 = 0;
 u32 time_tick_cnt2=0;
 void SysTick_Handler(void)
 {
@@ -171,6 +172,9 @@ void  macTIM_INT_FUN (void)
 	if(time_tick_cnt2<0xFFFFFFFF)
 		time_tick_cnt2++;
 
+
+       	if(time_tick_cnt1<0xFFFFFFFF)
+		time_tick_cnt1++;
     
 		TIM_ClearITPendingBit(macTIMx , TIM_FLAG_Update);  		 
 	}		 	

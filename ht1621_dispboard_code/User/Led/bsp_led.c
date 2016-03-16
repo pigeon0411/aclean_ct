@@ -9,7 +9,19 @@
 //////////////////////
 
 
-u8 power_key_state = 0x01; //0xff,none change; 0x01,change to power on ;0x00,change to power off
+u8 power_key_state = 0xff; //开关机按键状态0xff,none change; 0x01,change to power on ;0x00,change to power off
+
+u8 mode_key_state = 0xff;  //智能/手动/定时按键状态
+
+u8 PHT_key_state = 0xff;  // 光氢按键按键状态
+
+u8 workspeed_key_state = 0xff;  //风速按键按键状态
+
+u8 ESD_key_state = 0xff;  //静电按键按键状态
+
+
+
+//u8 power_key_state = 0x01; //0xff,none change; 0x01,change to power on ;0x00,change to power off
 
 
 
@@ -517,7 +529,7 @@ void Ht1621_on_disp(u8 f)  //开启对应显示
 }
 
 
-
+/*
 
 void ESD_onoff(u8 mode) //静电开关
 {
@@ -618,7 +630,7 @@ void power_onoff(u8 mode) //静电开关
       }
 
 }
-
+*/
 
 void power_Key(void)  //开关机
 {
@@ -653,17 +665,18 @@ static u16 KeyDownTimes,KeyDoubleTimes;
     {
     
      //printf("\r\n短按处理");
-      time = 0;
-      if(device_work_data.para_type.device_power_state == 0)//开关机
-         //power_onoff(ON); 
-        device_work_changing_data.para_type.device_power_state = 1;
-       else
-        device_work_changing_data.para_type.device_power_state = 0;
-
-       if(power_key_state)
-        power_key_state = 0x00;
-       else
+     time = 0;
+        if(device_work_data.para_type.device_power_state == 0)//开关机
+        	{
+      // if(power_key_state)
+      //device_work_data.para_type.device_power_state = 1;
         power_key_state = 0x01;
+        	}
+       else
+       	{
+	 // device_work_data.para_type.device_power_state = 0;
+        power_key_state = 0x00;
+       	}
        
       // power_onoff(OFF); 
      KeyState = KeyUp;
@@ -689,8 +702,8 @@ static u16 KeyDownTimes,KeyDoubleTimes;
 
         if(device_work_data.para_type.device_power_state == 1)//开机状态
         {//只在开机状态下才执行 WIFI复位
-            MainSwitch(4);  //WIFI复位
-
+           reset_wifi();  //WIFI复位
+         
         }
     }
     else if (KeyDownTimes >= 400)//防止加满溢出
@@ -788,19 +801,25 @@ static u16 KeyDownTimes,KeyDoubleTimes;
     
      //printf("\r\n短按处理");
       time = 0;
-	 if(key4 == 0)
-	 	{
-	 	 // device_work_changing_data.para_type.timing_state = device_work_data.para_type.timing_state;
-               device_work_changing_data.para_type.timing_state = count3*10+count2;
-		 key4 = 1;
-	 	}
-
+	      if( key4 == 0)
+	          key4 = 1;
+		  
             else if(device_work_data.para_type.device_mode == 1)//智能
-                 MainSwitch(2); // 手动
+            	{
+                // MainSwitch(2); // 手动
+                 mode_key_state =0x02;
+            	}
            else if(device_work_data.para_type.device_mode == 2)//手动
-                 MainSwitch(1); //智能
-	     else      
-		   MainSwitch(2); // 手动
+             {
+                // MainSwitch(1); //智能
+                 mode_key_state =0x01;
+           	}
+	   //  else      
+	     //	{
+		  // MainSwitch(2); // 手动
+		  // mode_key_state =0x01;
+	     //	}
+
          KeyState = KeyUp;
     }
    }
@@ -998,9 +1017,11 @@ void Key_Scan(void)   //按键扫描
 	   	{
 	    	     
             if(device_work_data.para_type.high_pressur_state == 0)//静电关
-               ESD_onoff(ON); //静电开
+              // ESD_onoff(ON); //静电开
+              ESD_key_state=0x01;
              else
-	       ESD_onoff(OFF); //静电关
+	      // ESD_onoff(OFF); //静电关
+	      ESD_key_state=0x00;
 	   	}
 	  }
 	  
@@ -1107,9 +1128,11 @@ void Key_Scan(void)   //按键扫描
 	    if(device_work_data.para_type.device_mode == 2)   //不是智能模式下
 	    	{
                 if(device_work_data.para_type.pht_work_state == 0)//T2 光氢 关
-                PHT_onoff(ON);//T13 光氢开 
-                else
-	        PHT_onoff(OFF);//T13 光氢关
+                //PHT_onoff(ON);//T13 光氢开 
+                PHT_key_state =0x01;
+               else
+	        // PHT_onoff(OFF);//T13 光氢关
+	         PHT_key_state =0x00;
 	    	}
 	  }
 	  
@@ -1126,15 +1149,20 @@ void Key_Scan(void)   //按键扫描
 	  if(key4!=0)
 	   {
              if(device_work_data.para_type.wind_speed_state == 0)//风速关
-                 workspeed_onoff(1); //风速低
+                 //workspeed_onoff(1); //风速低
+                 workspeed_key_state =0x01;
             else if(device_work_data.para_type.wind_speed_state == 1)//风速低
-                 workspeed_onoff(2); //风速中 
+                 //workspeed_onoff(2); //风速中 
+                 workspeed_key_state =0x02;
            else if (device_work_data.para_type.wind_speed_state == 2)//风速中
-	        workspeed_onoff(3); //风速高
+	        //workspeed_onoff(3); //风速高
+	        workspeed_key_state =0x03;
            else if (device_work_data.para_type.wind_speed_state == 3)//风速高
-               workspeed_onoff(1);//风速低
+              // workspeed_onoff(1);//风速低
+               workspeed_key_state =0x01;
              else
-		workspeed_onoff(0); //风速关
+		//workspeed_onoff(0); //风速关
+	       workspeed_key_state =0x00;
 	       
 	    }
 	  
@@ -1292,13 +1320,28 @@ void Ht1621Display(void)  //显示
 void device_work_mode_check(void)  //收到主板按键显示命令
 {
 
-	u8 tmp,tmp1,tmp2,tmp3,tmp4;
+	u8 tmp,tmp1,tmp2,tmp3,tmp4,tmp5;
 	
         tmp =device_work_data.para_type.device_mode;          //模式
         tmp1 =device_work_data.para_type.wind_speed_state;  //风速
         tmp2 =device_work_data.para_type.high_pressur_state;  //静电 
 	tmp3 =device_work_data.para_type.pht_work_state;        //光氢
        tmp4 = device_work_data.para_type.timing_state;             //定时
+      tmp5= device_work_data.para_type.device_power_state; 
+
+
+      switch(tmp5)
+      {
+    	case 0x00:
+        onoff_device_set(OFF);			
+	break;
+	case 0x01:
+	onoff_device_set(ON);
+	break;
+	default:  
+	break;
+      	}
+
 	
        switch(tmp)
     	{
